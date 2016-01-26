@@ -34,7 +34,11 @@ var sizeULoc,
     pixelSizeULoc,
     rotationULoc,
     zoomULoc,
-    patternTypeULoc;
+    patternTypeULoc,
+
+    sphereRadiusULoc,
+    spherePositionULoc,
+    horizontalFOVULoc;
 
 var videoElement;
 
@@ -42,11 +46,11 @@ var videoElement;
 var patternType = 0,
     pixelSize = 8,
     zoomFactor = 1.0,
-    rotationFactor = 0.0;
+    rotationFactor = 0.0,
+
+    horizontalFOV;
 
 var screenWidth, screenHeight;
-
-
 
 //
 // start
@@ -58,10 +62,15 @@ function start() {
   // window.addEventListener('resize', fitCanvas, false);
   screenWidth = screen.width;
   screenHeight = screen.height;
+  horizontalFOV = 120;
   console.log("screen dimensions: ", screenWidth, "x", screenHeight);
   setupFileHandling();
   videoElement = document.getElementById("vid-source");
   canvas = document.getElementById("glcanvas");
+  document.getElementById("fov-input").addEventListener('input',
+    function(event) {
+      horizontalFOV = event.target.value;
+    });
   initWebGL(canvas);      // Initialize the GL context
 
   // Only continue if WebGL is available and working
@@ -319,6 +328,9 @@ function drawScene() {
   gl.uniform3f(zoomULoc, 0, 0, zoomFactor); //make interactive
   gl.uniform1f(rotationULoc, Math.PI * rotationFactor / 180); //make interactive
   gl.uniform1i(patternTypeULoc, patternType);
+  gl.uniform1f(sphereRadiusULoc, 2.0);
+  gl.uniform3f(spherePositionULoc, 0.0, 0.0, 10.0);
+  gl.uniform1f(horizontalFOVULoc, deg2Rad(horizontalFOV));
 
   // Specify the texture to map onto the faces.
 
@@ -403,6 +415,9 @@ function initShaders() {
       rotationULoc = gl.getUniformLocation(shaderProgram, "rotation");
       zoomULoc = gl.getUniformLocation(shaderProgram, "zoom");
       patternTypeULoc = gl.getUniformLocation(shaderProgram, "patternType");
+      sphereRadiusULoc = gl.getUniformLocation(shaderProgram, "sphereRadius");
+      spherePositionULoc = gl.getUniformLocation(shaderProgram, "spherePosition");
+      horizontalFOVULoc = gl.getUniformLocation(shaderProgram, "horizontalFOV");
 
       //TODO: set pattern textures, since they won't change
 
@@ -549,8 +564,14 @@ function setupFileHandling() {
   	}, false);
 
   } else {
-
     alert('The File APIs are not fully supported in this browser.');
-
   }
+}
+
+function deg2Rad(d) {
+  return d * Math.PI / 180;
+}
+
+function rad2Deg(r) {
+  return r * 180 / Math.PI;
 }
