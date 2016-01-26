@@ -6,19 +6,10 @@ var cubeVerticesBuffer;
 var cubeVerticesTextureCoordBuffer;
 var cubeVerticesIndexBuffer;
 var cubeVerticesIndexBuffer;
-var cubeRotation = 0.0;
-var lastCubeUpdateTime = 0;
 
 /* textures */
 var sourceTexture;
-var cellTex_01_tex;
-var cellTex_01_img;
-var cellTex_02_tex;
-var cellTex_02_img;
-var cellTex_03_tex;
-var cellTex_03_img;
 
-var mvMatrix;
 var shaderProgram;
 //attribute locations
 var vertexPositionAttribute;
@@ -26,29 +17,16 @@ var textureCoordAttribute;
 //uniform locations
 var sizeULoc,
     srcTexULoc,
-    cellTex_01_ULoc,
-    cellTex_02_ULoc,
-    cellTex_03_ULoc,
-    cellSizeULoc,
-    cellTexSizeULoc,
-    pixelSizeULoc,
-    rotationULoc,
-    zoomULoc,
-    patternTypeULoc,
-
-    sphereRadiusULoc,
-    spherePositionULoc,
-    horizontalFOVULoc;
+    domeRadiusULoc,
+    domePositionULoc,
+    domeOrientationULoc,
+    horizontalFOVULoc,
+    domeLatitudeULoc;
 
 var videoElement;
 
 /*parameter*/
-var patternType = 0,
-    pixelSize = 8,
-    zoomFactor = 1.0,
-    rotationFactor = 0.0,
-
-    horizontalFOV;
+var params;
 
 var screenWidth, screenHeight;
 
@@ -62,15 +40,12 @@ function start() {
   // window.addEventListener('resize', fitCanvas, false);
   screenWidth = screen.width;
   screenHeight = screen.height;
-  horizontalFOV = 120;
   console.log("screen dimensions: ", screenWidth, "x", screenHeight);
   setupFileHandling();
   videoElement = document.getElementById("vid-source");
   canvas = document.getElementById("glcanvas");
-  document.getElementById("fov-input").addEventListener('input',
-    function(event) {
-      horizontalFOV = event.target.value;
-    });
+
+  initGUI();
   initWebGL(canvas);      // Initialize the GL context
 
   // Only continue if WebGL is available and working
@@ -223,11 +198,6 @@ function initBuffers() {
 //
 function initTextures() {
   sourceTexture = gl.createTexture();
-  /*
-  cellTex_01_tex = initTexture(cellTex_01_img, './assets/tex/cell_tex_01.png');
-  cellTex_02_tex = initTexture(cellTex_02_img, './assets/tex/cell_tex_02.png');
-  cellTex_03_tex = initTexture(cellTex_03_img, './assets/tex/cell_tex_03.png');
-  */
 }
 
 function initTexture(img, url, npot) {
@@ -322,15 +292,12 @@ function drawScene() {
   //setting uniforms
   gl.uniform2f(sizeULoc, gl.canvas.clientWidth, gl.canvas.clientHeight);
   // gl.uniform2f(sizeULoc, 1920.0, 1080.0);
-  gl.uniform2f(cellSizeULoc, 4.0, 4.0); //once
-  gl.uniform2f(cellTexSizeULoc, 1024, 1024); //once, FIX THIS
-  gl.uniform1f(pixelSizeULoc, pixelSize); //make interactive
-  gl.uniform3f(zoomULoc, 0, 0, zoomFactor); //make interactive
-  gl.uniform1f(rotationULoc, Math.PI * rotationFactor / 180); //make interactive
-  gl.uniform1i(patternTypeULoc, patternType);
-  gl.uniform1f(sphereRadiusULoc, 2.0);
-  gl.uniform3f(spherePositionULoc, 0.0, 0.0, 10.0);
-  gl.uniform1f(horizontalFOVULoc, deg2Rad(horizontalFOV));
+  gl.uniform1f(domeRadiusULoc, params.domeRadius);
+  gl.uniform3f(domePositionULoc, params.domePosX, params.domePosY, params.domePosZ);
+  gl.uniform2f(domeOrientationULoc, deg2Rad(params.domeOrtX), deg2Rad(params.domeOrtY));
+  gl.uniform1f(horizontalFOVULoc, deg2Rad(params.horizontalFOV));
+  gl.uniform1f(domeLatitudeULoc, deg2Rad(params.domeLatitude));
+  // console.log("params", horizontalFOV, domeRadius, domePosX, domePosY, domePosZ, domeOrtX, domeOrtY);
 
   // Specify the texture to map onto the faces.
 
@@ -338,19 +305,7 @@ function drawScene() {
   gl.activeTexture(gl.TEXTURE0 + unitNo);
   gl.bindTexture(gl.TEXTURE_2D, sourceTexture);
   gl.uniform1i(srcTexULoc, unitNo);
-
   unitNo++;
-  gl.activeTexture(gl.TEXTURE0 + unitNo);
-  gl.bindTexture(gl.TEXTURE_2D, cellTex_01_tex);
-  gl.uniform1i(cellTex_01_ULoc, unitNo);
-  unitNo++;
-  gl.activeTexture(gl.TEXTURE0 + unitNo);
-  gl.bindTexture(gl.TEXTURE_2D, cellTex_02_tex);
-  gl.uniform1i(cellTex_02_ULoc, unitNo);
-  unitNo++;
-  gl.activeTexture(gl.TEXTURE0 + unitNo);
-  gl.bindTexture(gl.TEXTURE_2D, cellTex_03_tex);
-  gl.uniform1i(cellTex_03_ULoc, unitNo);
 
   // Draw the quad.
 
@@ -405,19 +360,12 @@ function initShaders() {
 
       //getting uniform locations
       srcTexULoc = gl.getUniformLocation(shaderProgram, "src_tex");
-      cellTex_01_ULoc = gl.getUniformLocation(shaderProgram, "cell_tex_01");
-      cellTex_02_ULoc = gl.getUniformLocation(shaderProgram, "cell_tex_02");
-      cellTex_03_ULoc = gl.getUniformLocation(shaderProgram, "cell_tex_03");
       sizeULoc = gl.getUniformLocation(shaderProgram, "size");
-      cellSizeULoc = gl.getUniformLocation(shaderProgram, "cell_size");
-      cellTexSizeULoc = gl.getUniformLocation(shaderProgram, "cell_tex_size");
-      pixelSizeULoc = gl.getUniformLocation(shaderProgram, "pixelSize");
-      rotationULoc = gl.getUniformLocation(shaderProgram, "rotation");
-      zoomULoc = gl.getUniformLocation(shaderProgram, "zoom");
-      patternTypeULoc = gl.getUniformLocation(shaderProgram, "patternType");
-      sphereRadiusULoc = gl.getUniformLocation(shaderProgram, "sphereRadius");
-      spherePositionULoc = gl.getUniformLocation(shaderProgram, "spherePosition");
+      domeRadiusULoc = gl.getUniformLocation(shaderProgram, "sphereRadius");
+      domePositionULoc = gl.getUniformLocation(shaderProgram, "spherePosition");
+      domeOrientationULoc = gl.getUniformLocation(shaderProgram, "sphereOrientation");
       horizontalFOVULoc = gl.getUniformLocation(shaderProgram, "horizontalFOV");
+      domeLatitudeULoc = gl.getUniformLocation(shaderProgram, "sphereLatitude");
 
       //TODO: set pattern textures, since they won't change
 
@@ -468,21 +416,6 @@ function loadFiles(urls, callback, errorCallback) {
     for (var i = 0; i < numUrls; i++) {
         loadFile(urls[i], i, partialCallback, errorCallback);
     }
-}
-
-/* user interface callbacks*/
-function setPatternType(event) {
-  patternType = event.target.value;
-}
-function setPixelSize(event) {
-  pixelSize = event.target.value;
-}
-function setZoom(event) {
-  console.log(event.target.value);
-  zoomFactor = 1.0 / event.target.value;
-}
-function setRotation(event) {
-  rotationFactor = event.target.value;
 }
 
 function setupFileHandling() {
@@ -566,6 +499,46 @@ function setupFileHandling() {
   } else {
     alert('The File APIs are not fully supported in this browser.');
   }
+}
+
+function initGUI() {
+  params = {};
+  params.horizontalFOV = 120;
+  params.domeRadius = 3.0;
+  params.domePosX = 0.0;
+  params.domePosY = 0.0;
+  params.domePosZ = 10.0;
+  params.domeOrtX = 0.0;
+  params.domeOrtY = 0.0;
+  params.domeOrtZ = 0.0;
+  params.domeLatitude = 90.0;
+
+  initGUIElement("fov-input", "horizontalFOV");
+  initGUIElement("dome-rad-input", "domeRadius");
+  initGUIElement("dome-pos-x-input", "domePosX");
+  initGUIElement("dome-pos-y-input", "domePosY");
+  initGUIElement("dome-pos-z-input", "domePosZ");
+  initGUIElement("dome-ort-x-input", "domeOrtX");
+  initGUIElement("dome-ort-y-input", "domeOrtY");
+  initGUIElement("dome-latitude", "domeLatitude");
+
+  /*
+  horizontalFOV = 120;
+  document.getElementById("fov-input").addEventListener('input',
+    function(event) {
+      horizontalFOV = event.target.value;
+  });
+  document.getElementById("fov-input").value = horizontalFOV;
+  */
+}
+
+function initGUIElement(id, paramName, startingValue) {
+  var startingValue = params[paramName];
+  document.getElementById(id).addEventListener('input',
+    function(event) {
+      params[paramName] = event.target.value;
+  });
+  document.getElementById(id).value = startingValue;
 }
 
 function deg2Rad(d) {

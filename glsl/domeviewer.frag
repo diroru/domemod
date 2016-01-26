@@ -33,8 +33,9 @@ uniform sampler2D panoramicTexture;
 uniform sampler2D src_tex;
 
 uniform vec3 spherePosition;
-uniform vec2 sphereRotation;
+uniform vec2 sphereOrientation;
 uniform float sphereRadius;
+uniform float sphereLatitude;
 
 uniform vec2 cameraRotation;
 
@@ -236,41 +237,46 @@ void main() {
 	vec3 orthographicOffset = vec3(normCoord * 0.5, 0.0);
 
 	//w is sphere radius
-	vec4 sphereData = vec4(spherePosition, sphereRadius);
+	vec4 sphereData = vec4(spherePosition / size.xyy, sphereRadius);
 	vec3 mixedRay = normalize(mix(mix(fisheyeRay, rectiliniearRay , frMix), orthographicRay, ofrMix));
 	vec3 mixedOffset = mix(mix(fisheyeOffset, rectiliniearOffset, frMix), orthographicOffset, ofrMix);
 	VectorPair sphereIntersections = getEyeSphereIntersection(mixedRay, mixedOffset, sphereData);
 //	vec4 sphereIntersection =  getEyeSphereIntersection(rectiliniearRay, rectiliniearOffset, sphereData);
 	//vec4 sphereIntersection[2] = vec4[](sphereIntersections.minor, sphereIntersections.major);
 
+	//for performance use this:
+	/*
 	if (!sphereIntersections.isReal) {
 		discard;
-	}
+	}*/
 
 
 
 	//this should be a uniform
-	float latLimit = PI;
+	float latLimit = sphereLatitude;
 	//setting ray to intersection point
-	// vec2 longLat0 = mod(getLongLat(ray * kappa.x, p, sphereRotation) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
-	// vec2 longLat1 = mod(getLongLat(ray * kappa.y, p, sphereRotation) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
-	// vec2 longLat0 = mod(getLongLat(sphereIntersection[0], p, sphereRotation) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
-	// vec2 longLat1 = mod(getLongLat(sphereIntersection[1], p, sphereRotation) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
-	vec2 longLat0 = mod(getLongLat(sphereIntersections.minor.xyz, sphereData.xyz, sphereRotation) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
-	vec2 longLat1 = mod(getLongLat(sphereIntersections.major.xyz, sphereData.xyz, sphereRotation) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
+	// vec2 longLat0 = mod(getLongLat(ray * kappa.x, p, sphereOrientation) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
+	// vec2 longLat1 = mod(getLongLat(ray * kappa.y, p, sphereOrientation) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
+	// vec2 longLat0 = mod(getLongLat(sphereIntersection[0], p, sphereOrientation) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
+	// vec2 longLat1 = mod(getLongLat(sphereIntersection[1], p, sphereOrientation) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
+	vec2 longLat0 = mod(getLongLat(sphereIntersections.minor.xyz, sphereData.xyz, sphereOrientation) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
+	vec2 longLat1 = mod(getLongLat(sphereIntersections.major.xyz, sphereData.xyz, sphereOrientation) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
 
 	vec2 longLat = longLat0;
 
 	float nearPlane = 0.05;
 
-	if (sphereIntersections.major.z < -nearPlane ) {
-		gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+	if (sphereIntersections.major.z < -nearPlane || !sphereIntersections.isReal ) {
+		gl_FragColor = vec4(0.2, 0.2, 0.2, 1.0);
 	} else {
-		if (sphereIntersections.minor.z < nearPlane ) {
+		if (sphereIntersections.minor.z < nearPlane || longLat.y >= latLimit) {
 			longLat = longLat1;
 		}
-		//gl_FragColor = texture2D(myTexture, mapFromLatLongToAzimuthalTexel(longLat, latLimit).st);
-		gl_FragColor = texture2D(src_tex, mapFromLatLongToPanoramicTexel(longLat));
+		if (longLat.y >= latLimit) {
+			discard;
+		}
+		//gl_FragColor = texture2D(src_tex, mapFromLatLongToAzimuthalTexel(longLat, latLimit).st);
+		 gl_FragColor = texture2D(src_tex, mapFromLatLongToPanoramicTexel(longLat));
 	  // gl_FragColor = texture2D(src_tex, src_coord / size);
 	}
 }
