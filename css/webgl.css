@@ -1,0 +1,32 @@
+html {
+}
+
+canvas {
+	/*border: 2px solid black;*/
+	background-color: black;
+	width: 100%;
+	height: 100%;
+}
+video {
+	display: none;
+}
+
+html, body {
+	width: 100%;
+	height: 100%;
+	margin: 0px;
+	border: 0;
+	overflow: hidden; /*  Disable scrollbars */
+	display: block;  /* No floating content on sides */
+}
+
+#ui {
+	position: absolute;
+	bottom: 30px;
+	right: 30px;
+	width: 300px;
+	z-index: 3;
+	padding: 1em;
+	color: white;
+	background-color: rgba(0, 0, 0, 0.5);
+}
