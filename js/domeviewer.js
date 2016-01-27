@@ -23,17 +23,17 @@ var sizeULoc,
     horizontalFOVULoc,
     domeLatitudeULoc;
 
-var videoElement;
+var mediaContainer,
+    mediaElement;
 
 /*parameter*/
 var params;
 
 var screenWidth, screenHeight;
-var doUpdateTexture = true;
 
 var srcTexInfo = {
   shouldUpdate : false,
-  type: "video"
+  type: undefined
 };
 
 //
@@ -48,7 +48,6 @@ function start() {
   screenHeight = screen.height;
   console.log("screen dimensions: ", screenWidth, "x", screenHeight);
   setupFileHandling();
-  videoElement = document.getElementById("vid-source");
   canvas = document.getElementById("glcanvas");
 
   initGUI();
@@ -233,7 +232,7 @@ function updateTexture() {
   gl.bindTexture(gl.TEXTURE_2D, sourceTexture);
   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,
-        gl.UNSIGNED_BYTE, videoElement);
+        gl.UNSIGNED_BYTE, mediaElement);
   /*for NPOT textures, see as well: https://www.khronos.org/webgl/wiki/WebGL_and_OpenGL_Differences*/
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -243,6 +242,12 @@ function updateTexture() {
   // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
   // gl.generateMipmap(gl.TEXTURE_2D);
   gl.bindTexture(gl.TEXTURE_2D, null);
+  /*
+  if (srcTexInfo.type === 'image') {
+    srcTexInfo.shouldUpdate = false;
+  }
+  */
+  console.log("media element", mediaElement);
 }
 
 //
@@ -251,7 +256,7 @@ function updateTexture() {
 // Draw the scene.
 //
 function drawScene() {
-  if (srcTexInfo.playable) {
+  if (srcTexInfo.shouldUpdate) {
     updateTexture();
   }
   fitCanvas();
@@ -399,6 +404,7 @@ function loadFiles(urls, callback, errorCallback) {
 function setupFileHandling() {
   //source: http://codepen.io/SpencerCooley/pen/JtiFL/
   //check if browser supports file api and filereader features
+  mediaContainer = document.getElementById("media-container");
   if (window.File && window.FileReader && window.FileList && window.Blob) {
 
      //this is not completely neccesary, just a nice function I found to make the file size format friendlier
@@ -415,69 +421,57 @@ function setupFileHandling() {
   	    return bytes.toFixed(1)+' '+units[u];
   	}
 
+    function initImage(file){
+		    var url = URL.createObjectURL(file);
+        //TODO: check and stop existing media!
+        //TODO: on cancel?
+        srcTexInfo.shouldUpdate = false;
 
-    //this function is called when the input loads an image
-  	function renderImage(file){
-  		var reader = new FileReader();
-  		reader.onload = function(event){
-  			the_url = event.target.result
-        //of course using a template library like handlebars.js is a better solution than just inserting a string
-  			$('#preview').html("<img src='"+the_url+"' />")
-  			$('#name').html(file.name)
-  			$('#size').html(humanFileSize(file.size, "MB"))
-  			$('#type').html(file.type)
-  		}
+        if (srcTexInfo.type === 'video') {
+          clearVideo();
+        }
+        if (srcTexInfo.type === 'image') {
+          clearImage();
+        }
 
-      //when the file is read it triggers the onload event above.
-  		reader.readAsDataURL(file);
+        var imageElement = document.createElement("img");
+
+        imageElement.addEventListener('load', loadImageCallback, true);
+
+        imageElement.setAttribute('src', url);
+        mediaContainer.appendChild(imageElement);
+        mediaElement = imageElement;
+        //DEBUGGING
+
+        srcTexInfo.type = 'image';
+        srcTexInfo.shouldUpdate = true;
+        console.log("init image called", mediaElement);
   	}
 
-
-    //TODO: rename?
   	function initVideo(file){
 		    var url = URL.createObjectURL(file);
         //TODO: check and stop existing media!
         //TODO: on cancel?
-        srcTexInfo.playable = false;
-        var vidContainer = document.getElementById("video-container");
-        try {
-          videoElement.pause();
-          videoElement.setAttribute("src", "");
-          //videoElement.removeAttribute("src");
-          videoElement.load();
-          videoElement.removeEventListener("canplaythrough", startVideo, true);
-          videoElement.removeEventListener("ended", videoDone, true);
-          vidContainer.removeChild(document.getElementsByTagName("video")[0]);
-        } catch (e) {
-          console.error(e);
+        srcTexInfo.shouldUpdate = false;
+
+        if (srcTexInfo.type === 'video') {
+          clearVideo();
         }
-        var vidContainer = document.getElementById("video-container");
+        if (srcTexInfo.type === 'image') {
+          clearImage();
+        }
 
         //of course using a template library like handlebars.js is a better solution than just inserting a string
-        var vidContainer = document.getElementById("video-container");
-        console.log(vidContainer);
-        videoElement = document.createElement("video");
+        var videoElement = document.createElement("video");
+        videoElement.addEventListener("canplaythrough", startVideo.bind(videoElement), true);
+        videoElement.addEventListener("ended", videoDone, true);
         videoElement.setAttribute('src', url);
         videoElement.setAttribute('autoplay', '');
         videoElement.setAttribute('muted', '');
         videoElement.setAttribute('loop', '');
-        videoElement.setAttribute('type', 'video/mp4');
-        vidContainer.appendChild(videoElement);
-
-
-        videoElement.addEventListener("canplaythrough", startVideo.bind(videoElement), true);
-        videoElement.addEventListener("ended", videoDone, true);
-        srcTexInfo.playable = true;
-
-        //activateVideoListeners(videoElement);
-        // console.log("setting video source to", the_url);
-        // $('#data-vid').html("<video autoplay muted loop><source id='vid-source' src='"+the_url+"' type='video/mp4'></video>")
-        /*
-        $('#name-vid').html(file.name)
-  			$('#size-vid').html(humanFileSize(file.size, "MB"))
-  			$('#type-vid').html(file.type)
-        */
-
+        videoElement.setAttribute('type', file.type);
+        mediaContainer.appendChild(videoElement);
+        mediaElement = videoElement;
   	}
 
     //console.log(document);
@@ -492,7 +486,7 @@ function setupFileHandling() {
   		  initVideo(this.files[0]);
       } else if (file.type.match(/image\/*/)) {
         //TODO:
-        //initImage(this.files[0]);
+        initImage(this.files[0]);
       } else {
         console.log("Couldn't interpret image/video file: ", this.files[0]);
       }
@@ -503,27 +497,40 @@ function setupFileHandling() {
   }
 }
 
-function activateVideoListeners(theVideoElement) {
-  // Start listening for the canplaythrough event, so we don't
-  // start playing the video until we can do so without stuttering
-
-  theVideoElement.addEventListener("canplaythrough", startVideo.bind(theVideoElement), true);
-
-  // Start listening for the ended event, so we can stop the
-  // animation when the video is finished playing.
-
-  theVideoElement.addEventListener("ended", videoDone, true);
-  console.log("activate", doUpdateTexture);
+function clearVideo() {
+  try {
+    videoDone();
+    var videoElement = mediaContainer.getElementsByTagName("video")[0];
+    videoElement.pause();
+    videoElement.setAttribute("src", "");
+    //videoElement.removeAttribute("src");
+    videoElement.load();
+    videoElement.removeEventListener("canplaythrough", startVideo, true);
+    videoElement.removeEventListener("ended", videoDone, true);
+    mediaContainer.removeChild(videoElement);
+  } catch (e) {
+    console.error(e);
+  }
 }
 
-function deactivateVideoListeners(theVideoElement) {
-  theVideoElement.pause();
-  theVideoElement.removeEventListener("canplaythrough", startVideo, true);
-  theVideoElement.removeEventListener("ended", videoDone, true);
-  videoDone();
-  theVideoElement.removeAttribute("src");
-  theVideoElement.load();
-  console.log("deactivate", doUpdateTexture);
+function clearImage() {
+  try {
+    clearInterval(intervalID);
+    var imageElement = mediaContainer.getElementsByTagName("img")[0];
+    imageElement.setAttribute("src", "");
+    //videoElement.removeAttribute("src");
+    imageElement.removeEventListener("load", loadImageCallback, true);
+    mediaContainer.removeChild(imageElement);
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function loadImageCallback() {
+  srcTexInfo.type = 'image';
+  srcTexInfo.shouldUpdate = true;
+  intervalID = setInterval(drawScene, 120);
+  console.log("load image callback triggered.");
 }
 
 //
@@ -535,8 +542,9 @@ function deactivateVideoListeners(theVideoElement) {
 function startVideo() {
   this.play();
   this.muted = true;
-  doUpdateTexture = true;
   intervalID = setInterval(drawScene, 30);
+  srcTexInfo.type = 'video';
+  srcTexInfo.shouldUpdate = true;
   //console.log("start video", doUpdateTexture);
 }
 
@@ -547,7 +555,6 @@ function startVideo() {
 // the animation.
 //
 function videoDone() {
-  doUpdateTexture = false;
   clearInterval(intervalID);
   console.log("video done called");
 }
