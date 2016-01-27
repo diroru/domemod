@@ -237,7 +237,7 @@ void main() {
 	vec3 orthographicOffset = vec3(normCoord * 0.5, 0.0);
 
 	//w is sphere radius
-	vec4 sphereData = vec4(spherePosition / size.xyy, sphereRadius);
+	vec4 sphereData = vec4(spherePosition, sphereRadius);
 	vec3 mixedRay = normalize(mix(mix(fisheyeRay, rectiliniearRay , frMix), orthographicRay, ofrMix));
 	vec3 mixedOffset = mix(mix(fisheyeOffset, rectiliniearOffset, frMix), orthographicOffset, ofrMix);
 	VectorPair sphereIntersections = getEyeSphereIntersection(mixedRay, mixedOffset, sphereData);
@@ -270,13 +270,19 @@ void main() {
 		gl_FragColor = vec4(0.2, 0.2, 0.2, 1.0);
 	} else {
 		if (sphereIntersections.minor.z < nearPlane || longLat.y >= latLimit) {
-			longLat = longLat1;
+			if (longLat1.y >= latLimit) {
+				discard;
+			}
+			//gl_FragColor = texture2D(src_tex, mapFromLatLongToAzimuthalTexel(longLat, latLimit).st);
+			gl_FragColor = texture2D(src_tex, mapFromLatLongToPanoramicTexel(longLat1));
+		  // gl_FragColor = texture2D(src_tex, src_coord / size);
+		} else {
+			if (longLat.y >= latLimit) {
+				discard;
+			}
+			//gl_FragColor = texture2D(src_tex, mapFromLatLongToAzimuthalTexel(longLat, latLimit).st);
+			 gl_FragColor = mix(texture2D(src_tex, mapFromLatLongToPanoramicTexel(longLat)), vec4(0.2,0.2,0.2,1.0), 0.6);
+		  // gl_FragColor = texture2D(src_tex, src_coord / size);
 		}
-		if (longLat.y >= latLimit) {
-			discard;
-		}
-		//gl_FragColor = texture2D(src_tex, mapFromLatLongToAzimuthalTexel(longLat, latLimit).st);
-		 gl_FragColor = texture2D(src_tex, mapFromLatLongToPanoramicTexel(longLat));
-	  // gl_FragColor = texture2D(src_tex, src_coord / size);
 	}
 }

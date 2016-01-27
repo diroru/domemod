@@ -36,30 +36,30 @@
       </form>
     </div-->
     <div id="ui">
-      <div>horizontal fov:</div>
-      <input id="fov-input" type="range" min="5" max="170" value="5" class="full-width"></input>
+      <span>horizontal fov: </span><input id="fov-input" type="number" width=4>
+      <input id="fov-slider" type="range" min="5" max="170" value="5" class="full-width">
       <!--dome position-->
-      <div>radius:</div>
-      <input id="dome-rad-input" type="range" min="0.1" max="100" value="1.0" class="full-width"></input>
-      <div>pos x:</div>
-      <input id="dome-pos-x-input" type="range" min="-1000" max="1000" value="0" class="full-width"></input>
-      <div>pos y:</div>
-      <input id="dome-pos-y-input" type="range" min="-1000" max="1000" value="0" class="full-width"></input>
-      <div>pos z:</div>
-      <input id="dome-pos-z-input" type="range" min="-1000" max="1000" value="0" class="full-width"></input>
+      <span>radius: </span><input id="dome-rad-input" type="text">
+      <input id="dome-rad-slider" type="range" min="1" max="100" value="1.0" class="full-width">
+      <span>pos x: </span><input id="dome-pos-x-input" type="text">
+      <input id="dome-pos-x-slider" type="range" min="-100" max="100" value="0" class="full-width">
+      <span>pos y: </span><input id="dome-pos-y-input" type="text">
+      <input id="dome-pos-y-slider" type="range" min="-100" max="100" value="0" class="full-width">
+      <span>pos z: </span><input id="dome-pos-z-input" type="text">
+      <input id="dome-pos-z-slider" type="range" min="-100" max="100" value="0" class="full-width">
       <!--dome orientation-->
-      <div>orientation x:</div>
-      <input id="dome-ort-x-input" type="range" min="-180" max="180" value="0" class="full-width"></input>
-      <div>orientation y:</div>
-      <input id="dome-ort-y-input" type="range" min="-180" max="180" value="0" class="full-width"></input>
+      <span>orientation x: </span><input id="dome-ort-x-input" type="text">
+      <input id="dome-ort-x-slider" type="range" min="-180" max="180" value="0" class="full-width">
+      <span>orientation y: </span><input id="dome-ort-y-input" type="text">
+      <input id="dome-ort-y-slider" type="range" min="-180" max="180" value="0" class="full-width">
       <!--input id="dome-ort-z-input" type="range" min="-180" max="180" value="0" class="full-width"></input-->
-      <div>dome latitude</div>
-      <input id="dome-latitude" type="range" min="0" max="180" value="90" class="full-width"></input>
+      <span>dome latitude: </span><input id="dome-latitude-input" type="text">
+      <input id="dome-latitude-slider" type="range" min="0" max="180" value="90" class="full-width">
       <h1>Load An mp4 file</h1>
       <input type="file" id="the-video-file-field">
       	<div id="data-vid">
             <video autoplay muted loop id='vid-source'
-            src="./assets/videos/360_cockpit_view_Fighter_Jet_Patrouille_Suisse.mp4" type='video/mp4'></video>
+            src="./assets/videos/360_cockpit_view_Fighter_Jet_Patrouille_Suisse.mp4" type='video/mp4'>
         </div>
         <div>
            <h2 id="name-vid"></h2>

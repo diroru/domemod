@@ -29,6 +29,7 @@ var videoElement;
 var params;
 
 var screenWidth, screenHeight;
+var doUpdateTexture = true;
 
 //
 // start
@@ -71,16 +72,57 @@ function start() {
 
     initTextures();
 
-    // Start listening for the canplaythrough event, so we don't
-    // start playing the video until we can do so without stuttering
-
-    videoElement.addEventListener("canplaythrough", startVideo, true);
-
-    // Start listening for the ended event, so we can stop the
-    // animation when the video is finished playing.
-
-    videoElement.addEventListener("ended", videoDone, true);
+    activateVideoListeners(videoElement);
   }
+}
+
+function activateVideoListeners(theVideoElement) {
+  // Start listening for the canplaythrough event, so we don't
+  // start playing the video until we can do so without stuttering
+
+  theVideoElement.addEventListener("canplaythrough", startVideo.bind(theVideoElement), true);
+
+  // Start listening for the ended event, so we can stop the
+  // animation when the video is finished playing.
+
+  theVideoElement.addEventListener("ended", videoDone, true);
+  console.log("activate", doUpdateTexture);
+}
+
+function deactivateVideoListeners(theVideoElement) {
+  theVideoElement.pause();
+  theVideoElement.removeEventListener("canplaythrough", startVideo, true);
+  theVideoElement.removeEventListener("ended", videoDone, true);
+  videoDone();
+  theVideoElement.removeAttribute("src");
+  theVideoElement.load();
+  console.log("deactivate", doUpdateTexture);
+}
+
+//
+// startVideo
+//
+// Starts playing the video, so that it will start being used
+// as our texture.
+//
+function startVideo() {
+  this.play();
+  this.muted = true;
+  doUpdateTexture = true;
+  intervalID = setInterval(drawScene, 30);
+  //console.log("start video", doUpdateTexture);
+}
+
+//
+// videoDone
+//
+// Called when the video is done playing; this will terminate
+// the animation.
+//
+function videoDone() {
+  doUpdateTexture = false;
+  clearInterval(intervalID);
+  console.log("video done called");
 }
 
 //see:
@@ -248,34 +290,14 @@ function updateTexture() {
 }
 
 //
-// startVideo
-//
-// Starts playing the video, so that it will start being used
-// as our texture.
-//
-function startVideo() {
-  videoElement.play();
-  videoElement.muted = true;
-  intervalID = setInterval(drawScene, 30);
-}
-
-//
-// videoDone
-//
-// Called when the video is done playing; this will terminate
-// the animation.
-//
-function videoDone() {
-  clearInterval(intervalID);
-}
-
-//
 // drawScene
 //
 // Draw the scene.
 //
 function drawScene() {
-  updateTexture();
+  if (doUpdateTexture) {
+    updateTexture();
+  }
   fitCanvas();
   // Clear the canvas before we start drawing on it.
 
@@ -294,7 +316,7 @@ function drawScene() {
   // gl.uniform2f(sizeULoc, 1920.0, 1080.0);
   gl.uniform1f(domeRadiusULoc, params.domeRadius);
   gl.uniform3f(domePositionULoc, params.domePosX, params.domePosY, params.domePosZ);
-  gl.uniform2f(domeOrientationULoc, deg2Rad(params.domeOrtX), deg2Rad(params.domeOrtY));
+  gl.uniform2f(domeOrientationULoc, deg2Rad(params.domeOrtX), deg2Rad(parseFloat(params.domeOrtY)+90));
   gl.uniform1f(horizontalFOVULoc, deg2Rad(params.horizontalFOV));
   gl.uniform1f(domeLatitudeULoc, deg2Rad(params.domeLatitude));
   // console.log("params", horizontalFOV, domeRadius, domePosX, domePosY, domePosZ, domeOrtX, domeOrtY);
@@ -458,10 +480,13 @@ function setupFileHandling() {
     //this function is called when the input loads a video
   	function renderVideo(file){
   		var reader = new FileReader();
+      document.getElementById("vid-source").setAttribute('src', "");
+      deactivateVideoListeners(videoElement);
   		reader.onload = function(event){
-  			the_url = event.target.result
+  			the_url = event.target.result;
         //of course using a template library like handlebars.js is a better solution than just inserting a string
         document.getElementById("vid-source").setAttribute('src', the_url);
+        activateVideoListeners(videoElement);
         // console.log("setting video source to", the_url);
         // $('#data-vid').html("<video autoplay muted loop><source id='vid-source' src='"+the_url+"' type='video/mp4'></video>")
         /*
@@ -513,13 +538,13 @@ function initGUI() {
   params.domeOrtZ = 0.0;
   params.domeLatitude = 90.0;
 
-  initGUIElement("fov-input", "horizontalFOV");
-  initGUIElement("dome-rad-input", "domeRadius");
-  initGUIElement("dome-pos-x-input", "domePosX");
-  initGUIElement("dome-pos-y-input", "domePosY");
-  initGUIElement("dome-pos-z-input", "domePosZ");
-  initGUIElement("dome-ort-x-input", "domeOrtX");
-  initGUIElement("dome-ort-y-input", "domeOrtY");
+  initGUIElement("fov", "horizontalFOV");
+  initGUIElement("dome-rad", "domeRadius");
+  initGUIElement("dome-pos-x", "domePosX");
+  initGUIElement("dome-pos-y", "domePosY");
+  initGUIElement("dome-pos-z", "domePosZ");
+  initGUIElement("dome-ort-x", "domeOrtX");
+  initGUIElement("dome-ort-y", "domeOrtY");
   initGUIElement("dome-latitude", "domeLatitude");
 
   /*
@@ -534,11 +559,18 @@ function initGUI() {
 
 function initGUIElement(id, paramName, startingValue) {
   var startingValue = params[paramName];
-  document.getElementById(id).addEventListener('input',
+  document.getElementById(id + "-slider").addEventListener('input',
     function(event) {
+      document.getElementById(id+"-input").value = event.target.value;
       params[paramName] = event.target.value;
   });
-  document.getElementById(id).value = startingValue;
+  document.getElementById(id + "-input").addEventListener('input',
+    function(event) {
+      document.getElementById(id+"-slider").value = event.target.value;
+      params[paramName] = event.target.value;
+  });
+  document.getElementById(id+"-slider").value = startingValue;
+  document.getElementById(id+"-input").value = startingValue;
 }
 
 function deg2Rad(d) {

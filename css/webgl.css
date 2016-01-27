@@ -33,5 +33,5 @@ html, body {
 	z-index: 3;
 	padding: 1em;
 	color: white;
-	background-color: rgba(0, 0, 0, 0.5);
+	background-color: rgba(1.0, 1.0, 0, 0.5);
 }
