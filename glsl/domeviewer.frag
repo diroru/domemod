@@ -264,7 +264,7 @@ void main() {
 
 	vec2 longLat = longLat0;
 
-	float nearPlane = 0.05;
+	float nearPlane = 0.01;
 
 	if (sphereIntersections.major.z < -nearPlane || !sphereIntersections.isReal ) {
 		gl_FragColor = vec4(0.2, 0.2, 0.2, 1.0);
@@ -275,6 +275,7 @@ void main() {
 			}
 			//gl_FragColor = texture2D(src_tex, mapFromLatLongToAzimuthalTexel(longLat, latLimit).st);
 			gl_FragColor = texture2D(src_tex, mapFromLatLongToPanoramicTexel(longLat1));
+			gl_FragColor = texture2D(src_tex, mapFromLatLongToAzimuthalTexel(longLat1, latLimit	).st);
 		  // gl_FragColor = texture2D(src_tex, src_coord / size);
 		} else {
 			if (longLat.y >= latLimit) {
@@ -282,6 +283,7 @@ void main() {
 			}
 			//gl_FragColor = texture2D(src_tex, mapFromLatLongToAzimuthalTexel(longLat, latLimit).st);
 			 gl_FragColor = mix(texture2D(src_tex, mapFromLatLongToPanoramicTexel(longLat)), vec4(0.2,0.2,0.2,1.0), 0.6);
+ 			 gl_FragColor = mix(texture2D(src_tex, mapFromLatLongToAzimuthalTexel(longLat, latLimit).st), vec4(0.2,0.2,0.2,1.0), 0.6);
 		  // gl_FragColor = texture2D(src_tex, src_coord / size);
 		}
 	}

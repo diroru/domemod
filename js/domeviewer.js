@@ -31,6 +31,11 @@ var params;
 var screenWidth, screenHeight;
 var doUpdateTexture = true;
 
+var srcTexInfo = {
+  shouldUpdate : false,
+  type: "video"
+};
+
 //
 // start
 //
@@ -72,57 +77,8 @@ function start() {
 
     initTextures();
 
-    activateVideoListeners(videoElement);
+    // activateVideoListeners(videoElement);
   }
-}
-
-function activateVideoListeners(theVideoElement) {
-  // Start listening for the canplaythrough event, so we don't
-  // start playing the video until we can do so without stuttering
-
-  theVideoElement.addEventListener("canplaythrough", startVideo.bind(theVideoElement), true);
-
-  // Start listening for the ended event, so we can stop the
-  // animation when the video is finished playing.
-
-  theVideoElement.addEventListener("ended", videoDone, true);
-  console.log("activate", doUpdateTexture);
-}
-
-function deactivateVideoListeners(theVideoElement) {
-  theVideoElement.pause();
-  theVideoElement.removeEventListener("canplaythrough", startVideo, true);
-  theVideoElement.removeEventListener("ended", videoDone, true);
-  videoDone();
-  theVideoElement.removeAttribute("src");
-  theVideoElement.load();
-  console.log("deactivate", doUpdateTexture);
-}
-
-//
-// startVideo
-//
-// Starts playing the video, so that it will start being used
-// as our texture.
-//
-function startVideo() {
-  this.play();
-  this.muted = true;
-  doUpdateTexture = true;
-  intervalID = setInterval(drawScene, 30);
-  //console.log("start video", doUpdateTexture);
-}
-
-//
-// videoDone
-//
-// Called when the video is done playing; this will terminate
-// the animation.
-//
-function videoDone() {
-  doUpdateTexture = false;
-  clearInterval(intervalID);
-  console.log("video done called");
 }
 
 //see:
@@ -295,7 +251,7 @@ function updateTexture() {
 // Draw the scene.
 //
 function drawScene() {
-  if (doUpdateTexture) {
+  if (srcTexInfo.playable) {
     updateTexture();
   }
   fitCanvas();
@@ -477,16 +433,43 @@ function setupFileHandling() {
   	}
 
 
-    //this function is called when the input loads a video
-  	function renderVideo(file){
-  		var reader = new FileReader();
-      document.getElementById("vid-source").setAttribute('src', "");
-      deactivateVideoListeners(videoElement);
-  		reader.onload = function(event){
-  			the_url = event.target.result;
+    //TODO: rename?
+  	function initVideo(file){
+		    var url = URL.createObjectURL(file);
+        //TODO: check and stop existing media!
+        //TODO: on cancel?
+        srcTexInfo.playable = false;
+        var vidContainer = document.getElementById("video-container");
+        try {
+          videoElement.pause();
+          videoElement.setAttribute("src", "");
+          //videoElement.removeAttribute("src");
+          videoElement.load();
+          videoElement.removeEventListener("canplaythrough", startVideo, true);
+          videoElement.removeEventListener("ended", videoDone, true);
+          vidContainer.removeChild(document.getElementsByTagName("video")[0]);
+        } catch (e) {
+          console.error(e);
+        }
+        var vidContainer = document.getElementById("video-container");
+
         //of course using a template library like handlebars.js is a better solution than just inserting a string
-        document.getElementById("vid-source").setAttribute('src', the_url);
-        activateVideoListeners(videoElement);
+        var vidContainer = document.getElementById("video-container");
+        console.log(vidContainer);
+        videoElement = document.createElement("video");
+        videoElement.setAttribute('src', url);
+        videoElement.setAttribute('autoplay', '');
+        videoElement.setAttribute('muted', '');
+        videoElement.setAttribute('loop', '');
+        videoElement.setAttribute('type', 'video/mp4');
+        vidContainer.appendChild(videoElement);
+
+
+        videoElement.addEventListener("canplaythrough", startVideo.bind(videoElement), true);
+        videoElement.addEventListener("ended", videoDone, true);
+        srcTexInfo.playable = true;
+
+        //activateVideoListeners(videoElement);
         // console.log("setting video source to", the_url);
         // $('#data-vid').html("<video autoplay muted loop><source id='vid-source' src='"+the_url+"' type='video/mp4'></video>")
         /*
@@ -494,36 +477,79 @@ function setupFileHandling() {
   			$('#size-vid').html(humanFileSize(file.size, "MB"))
   			$('#type-vid').html(file.type)
         */
-  		}
 
-      //when the file is read it triggers the onload event above.
-  		reader.readAsDataURL(file);
   	}
 
-
-    /*
-    //watch for change on the
-  	$( "#the-photo-file-field" ).change(function() {
-  		console.log("photo file has been chosen")
-  		//grab the first image in the fileList
-  		//in this example we are only loading one file.
-  		console.log(this.files[0].size)
-  		renderImage(this.files[0])
-
-  	});
-    */
     //console.log(document);
     document.getElementById("the-video-file-field").addEventListener('change', function() {
-  		console.log("video file has been chosen")
   		//grab the first image in the fileList
   		//in this example we are only loading one file.
-  		console.log(this.files[0].size)
-  		renderVideo(this.files[0])
+      var file = this.files[0];
+  		console.log("file size:", file.size);
+      console.log("file type:", file.type);
+      //TODO: decide media type here?
+      if(file.type.match(/video\/*/)){
+  		  initVideo(this.files[0]);
+      } else if (file.type.match(/image\/*/)) {
+        //TODO:
+        //initImage(this.files[0]);
+      } else {
+        console.log("Couldn't interpret image/video file: ", this.files[0]);
+      }
   	}, false);
 
   } else {
     alert('The File APIs are not fully supported in this browser.');
   }
+}
+
+function activateVideoListeners(theVideoElement) {
+  // Start listening for the canplaythrough event, so we don't
+  // start playing the video until we can do so without stuttering
+
+  theVideoElement.addEventListener("canplaythrough", startVideo.bind(theVideoElement), true);
+
+  // Start listening for the ended event, so we can stop the
+  // animation when the video is finished playing.
+
+  theVideoElement.addEventListener("ended", videoDone, true);
+  console.log("activate", doUpdateTexture);
+}
+
+function deactivateVideoListeners(theVideoElement) {
+  theVideoElement.pause();
+  theVideoElement.removeEventListener("canplaythrough", startVideo, true);
+  theVideoElement.removeEventListener("ended", videoDone, true);
+  videoDone();
+  theVideoElement.removeAttribute("src");
+  theVideoElement.load();
+  console.log("deactivate", doUpdateTexture);
+}
+
+//
+// startVideo
+//
+// Starts playing the video, so that it will start being used
+// as our texture.
+//
+function startVideo() {
+  this.play();
+  this.muted = true;
+  doUpdateTexture = true;
+  intervalID = setInterval(drawScene, 30);
+  //console.log("start video", doUpdateTexture);
+}
+
+//
+// videoDone
+//
+// Called when the video is done playing; this will terminate
+// the animation.
+//
+function videoDone() {
+  doUpdateTexture = false;
+  clearInterval(intervalID);
+  console.log("video done called");
 }
 
 function initGUI() {
