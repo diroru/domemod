@@ -238,11 +238,6 @@ function updateTexture() {
   // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
   // gl.generateMipmap(gl.TEXTURE_2D);
   gl.bindTexture(gl.TEXTURE_2D, null);
-  /*
-  if (srcTexInfo.type === 'image') {
-    srcTexInfo.shouldUpdate = false;
-  }
-  */
   // console.log("media element", mediaElement);
 }
 
@@ -269,14 +264,6 @@ function drawScene() {
   gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
 
   //setting uniforms
-  gl.uniform2f(sizeULoc, gl.canvas.clientWidth, gl.canvas.clientHeight);
-  // gl.uniform1f(domeRadiusULoc, params.domeRadius);
-  // gl.uniform3f(domePositionULoc, params.domePosX, params.domePosY, params.domePosZ);
-  // gl.uniform2f(domeOrientationULoc, deg2Rad(params.domeOrtX), deg2Rad(parseFloat(params.domeOrtY)+90));
-  //
-  // gl.uniform1f(domeLatitudeULoc, deg2Rad(params.domeLatitude));
-  // console.log("params", horizontalFOV, domeRadius, domePosX, domePosY, domePosZ, domeOrtX, domeOrtY);
-
   params.forEach(function(param) {
     switch(param['type']) {
       case 'float':
@@ -307,6 +294,10 @@ function drawScene() {
         break;
     }
   });
+
+
+  gl.uniform2f(sizeULoc, gl.canvas.clientWidth, gl.canvas.clientHeight);
+
 
   // Specify the texture to map onto the faces.
 
@@ -626,24 +617,6 @@ function initGUI() {
     }
     j++;
   });
-
-  /*
-  initGUIElement("dome-rad", "domeRadius");
-  initGUIElement("dome-pos-x", "domePosX");
-  initGUIElement("dome-pos-y", "domePosY");
-  initGUIElement("dome-pos-z", "domePosZ");
-  initGUIElement("dome-ort-x", "domeOrtX");
-  initGUIElement("dome-ort-y", "domeOrtY");
-  initGUIElement("dome-latitude", "domeLatitude");
-*/
-  /*
-  horizontalFOV = 120;
-  document.getElementById("fov-input").addEventListener('input',
-    function(event) {
-      horizontalFOV = event.target.value;
-  });
-  document.getElementById("fov-input").value = horizontalFOV;
-  */
 }
 
 function initGUIElement(id, paramName, startingValue) {
