@@ -16,11 +16,7 @@ var vertexPositionAttribute;
 var textureCoordAttribute;
 //uniform locations
 var sizeULoc,
-    srcTexULoc,
-    domeRadiusULoc,
-    domePositionULoc,
-    domeOrientationULoc,
-    domeLatitudeULoc;
+    srcTexULoc;
 
 var mediaContainer,
     mediaElement;
@@ -247,7 +243,7 @@ function updateTexture() {
     srcTexInfo.shouldUpdate = false;
   }
   */
-  console.log("media element", mediaElement);
+  // console.log("media element", mediaElement);
 }
 
 //
@@ -274,12 +270,11 @@ function drawScene() {
 
   //setting uniforms
   gl.uniform2f(sizeULoc, gl.canvas.clientWidth, gl.canvas.clientHeight);
-  // gl.uniform2f(sizeULoc, 1920.0, 1080.0);
-  gl.uniform1f(domeRadiusULoc, params.domeRadius);
-  gl.uniform3f(domePositionULoc, params.domePosX, params.domePosY, params.domePosZ);
-  gl.uniform2f(domeOrientationULoc, deg2Rad(params.domeOrtX), deg2Rad(parseFloat(params.domeOrtY)+90));
-
-  gl.uniform1f(domeLatitudeULoc, deg2Rad(params.domeLatitude));
+  // gl.uniform1f(domeRadiusULoc, params.domeRadius);
+  // gl.uniform3f(domePositionULoc, params.domePosX, params.domePosY, params.domePosZ);
+  // gl.uniform2f(domeOrientationULoc, deg2Rad(params.domeOrtX), deg2Rad(parseFloat(params.domeOrtY)+90));
+  //
+  // gl.uniform1f(domeLatitudeULoc, deg2Rad(params.domeLatitude));
   // console.log("params", horizontalFOV, domeRadius, domePosX, domePosY, domePosZ, domeOrtX, domeOrtY);
 
   params.forEach(function(param) {
@@ -593,6 +588,7 @@ function videoDone() {
 
 function initGUI() {
   var uiContainer = document.getElementById('ui');
+  var j = 0;
   params.forEach(function(param) {
     for (var i  = 0; i < param['value'].length; i++) {
       var labelElement = document.createElement('span');
@@ -610,12 +606,16 @@ function initGUI() {
       rangeInput.value = param['value'][i];
       rangeInput.className = 'full-width';
 
-      rangeInput.addEventListener('input', function(event) {
-        param['value'][i] = numberInput.value = event.target.value;
-      });
-      numberInput.addEventListener('input', function(event) {
-        param['value'][i] = rangeInput.value = event.target.value;
-      });
+      rangeInput.addEventListener('input', function(otherInput, param, index, event) {
+        console.log(event, otherInput, param, index);
+        param['value'][index] = event.target.value;
+        otherInput.value = event.target.value;
+      }.bind(null, numberInput, param, i));
+      numberInput.addEventListener('input', function(otherInput, param, index, event) {
+        console.log(event, otherInput, param, index);
+        param['value'][index] = event.target.value;
+        otherInput.value = event.target.value;
+      }.bind(null, rangeInput, param, i));
 
       uiContainer.appendChild(labelElement);
       uiContainer.appendChild(numberInput);
@@ -624,8 +624,10 @@ function initGUI() {
       console.log(numberInput);
       console.log(rangeInput);
     }
+    j++;
   });
 
+  /*
   initGUIElement("dome-rad", "domeRadius");
   initGUIElement("dome-pos-x", "domePosX");
   initGUIElement("dome-pos-y", "domePosY");
@@ -633,7 +635,7 @@ function initGUI() {
   initGUIElement("dome-ort-x", "domeOrtX");
   initGUIElement("dome-ort-y", "domeOrtY");
   initGUIElement("dome-latitude", "domeLatitude");
-
+*/
   /*
   horizontalFOV = 120;
   document.getElementById("fov-input").addEventListener('input',
@@ -688,14 +690,31 @@ function setupParams() {
     min: [1],
     max: [100]
   });
-  /*
-  params.domeRadius = 3.0;
-  params.domePosX = 0.0;
-  params.domePosY = 0.0;
-  params.domePosZ = 10.0;
-  params.domeOrtX = 0.0;
-  params.domeOrtY = 0.0;
-  params.domeOrtZ = 0.0;
-  params.domeLatitude = 90.0;
-  */
+  params.push({
+    name: "uSpherePosition",
+    label: ["dome position x: ", "dome position y: ", "dome position z: "],
+    suffix: ["-X", "-Y", "-Z"],
+    value: [0, 0, 0],
+    type: "float",
+    min: [-100, -100, -100],
+    max: [100, 100, 100]
+  });
+  params.push({
+    name: "uSphereOrientation",
+    label: ["dome orientation x: ", "dome orientation y: "],
+    suffix: ["-X", "-Y"],
+    value: [0, 0],
+    type: "float",
+    min: [-180, -180],
+    max: [180, 180]
+  });
+  params.push({
+    name: "uSphereLatitude",
+    label: ["dome latitude: "],
+    suffix: [""],
+    value: [90],
+    type: "float",
+    min: [0],
+    max: [180]
+  });
 }

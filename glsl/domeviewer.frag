@@ -32,13 +32,13 @@ uniform vec2 size;
 uniform sampler2D panoramicTexture;
 uniform sampler2D src_tex;
 
-uniform vec3 spherePosition;
-uniform vec2 sphereOrientation;
-uniform float sphereRadius;
-uniform float sphereLatitude;
+uniform vec3 uSpherePosition;
+uniform vec2 uSphereOrientation;
+uniform float uSphereRadius;
+uniform float uSphereLatitude;
 
-uniform vec2 cameraRotation;
-uniform vec2 cameraPosition;
+uniform vec2 uCameraOrientation;
+uniform vec2 uCameraPosition;
 
 uniform float frMix;
 uniform float ofrMix;
@@ -90,9 +90,19 @@ float deg2Rad(float d) {
   return d * PI / 180.0;
 }
 
+vec2 deg2Rad(vec2 d) {
+  return vec2(deg2Rad(d.x), deg2Rad(d.y));
+}
+
+vec3 deg2Rad(vec3 d) {
+  return vec3(deg2Rad(d.x), deg2Rad(d.y), deg2Rad(d.z));
+}
+
+/*
 float rad2Deg(float r) {
   return r * 180.0 / PI;
 }
+*/
 
 //this takes latitude and longitude coordinates (possibly of the [[0,TWO_PI],[0,PI]] range)
 //and maps them to [[0,1],[0,1]]
@@ -228,7 +238,7 @@ VectorPair getEyeSphereIntersection (vec3 eyeVec, vec3 offsetVec, vec4 sphereDat
 
 void main() {
 	vec2 aspectRatio = size / size.xx;
-	vec2 fieldOfView = getBothFOV(uHorizontalFOV, aspectRatio.y);
+	vec2 fieldOfView = getBothFOV(deg2Rad(uHorizontalFOV), aspectRatio.y);
 	//vec2 fieldOfView = vec2(1.0, 1.0);
 	//normalizing and mapping to the [-1.0,1.0] range
 	//TODO: check for bugs!
@@ -236,17 +246,17 @@ void main() {
 	 normCoord.x = - normCoord.x;
 
 	//already normalized?!
-	vec3 rectiliniearRay = normalize(getRectiliniearRay(normCoord, fieldOfView, cameraRotation));
+	vec3 rectiliniearRay = normalize(getRectiliniearRay(normCoord, fieldOfView, uCameraOrientation));
 	vec3 rectiliniearOffset = vec3(0.0);
 
-	vec3 fisheyeRay = normalize(getFisheyeRay(normCoord, fieldOfView, cameraRotation));
+	vec3 fisheyeRay = normalize(getFisheyeRay(normCoord, fieldOfView, uCameraOrientation));
 	vec3 fisheyeOffset = vec3(0.0);
 
 	vec3 orthographicRay = vec3(0.0, 0.0, 1.0);
 	vec3 orthographicOffset = vec3(normCoord * 0.5, 0.0);
 
 	//w is sphere radius
-	vec4 sphereData = vec4(spherePosition, sphereRadius);
+	vec4 sphereData = vec4(uSpherePosition, uSphereRadius);
 	vec3 mixedRay = normalize(mix(mix(fisheyeRay, rectiliniearRay , frMix), orthographicRay, ofrMix));
 	vec3 mixedOffset = mix(mix(fisheyeOffset, rectiliniearOffset, frMix), orthographicOffset, ofrMix);
 	VectorPair sphereIntersections = getEyeSphereIntersection(mixedRay, mixedOffset, sphereData);
@@ -262,14 +272,14 @@ void main() {
 
 
 	//this should be a uniform
-	float latLimit = sphereLatitude;
+	float latLimit = deg2Rad(uSphereLatitude);
 	//setting ray to intersection point
 	// vec2 longLat0 = mod(getLongLat(ray * kappa.x, p, sphereOrientation) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
 	// vec2 longLat1 = mod(getLongLat(ray * kappa.y, p, sphereOrientation) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
 	// vec2 longLat0 = mod(getLongLat(sphereIntersection[0], p, sphereOrientation) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
 	// vec2 longLat1 = mod(getLongLat(sphereIntersection[1], p, sphereOrientation) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
-	vec2 longLat0 = mod(getLongLat(sphereIntersections.minor.xyz, sphereData.xyz, sphereOrientation) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
-	vec2 longLat1 = mod(getLongLat(sphereIntersections.major.xyz, sphereData.xyz, sphereOrientation) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
+	vec2 longLat0 = mod(getLongLat(sphereIntersections.minor.xyz, sphereData.xyz, deg2Rad(uSphereOrientation)) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
+	vec2 longLat1 = mod(getLongLat(sphereIntersections.major.xyz, sphereData.xyz, deg2Rad(uSphereOrientation)) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
 
 	vec2 longLat = longLat0;
 
