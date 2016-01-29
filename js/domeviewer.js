@@ -20,7 +20,6 @@ var sizeULoc,
     domeRadiusULoc,
     domePositionULoc,
     domeOrientationULoc,
-    horizontalFOVULoc,
     domeLatitudeULoc;
 
 var mediaContainer,
@@ -50,6 +49,7 @@ function start() {
   setupFileHandling();
   canvas = document.getElementById("glcanvas");
 
+  setupParams();
   initGUI();
   initWebGL(canvas);      // Initialize the GL context
 
@@ -278,9 +278,40 @@ function drawScene() {
   gl.uniform1f(domeRadiusULoc, params.domeRadius);
   gl.uniform3f(domePositionULoc, params.domePosX, params.domePosY, params.domePosZ);
   gl.uniform2f(domeOrientationULoc, deg2Rad(params.domeOrtX), deg2Rad(parseFloat(params.domeOrtY)+90));
-  gl.uniform1f(horizontalFOVULoc, deg2Rad(params.horizontalFOV));
+
   gl.uniform1f(domeLatitudeULoc, deg2Rad(params.domeLatitude));
   // console.log("params", horizontalFOV, domeRadius, domePosX, domePosY, domePosZ, domeOrtX, domeOrtY);
+
+  params.forEach(function(param) {
+    switch(param['type']) {
+      case 'float':
+        switch(param['value'].length) {
+          case 1:
+            gl.uniform1f(param['uloc'], param['value'][0]);
+          break;
+          case 2:
+            gl.uniform2f(param['uloc'], param['value'][0], param['value'][1]);
+          break;
+          case 3:
+            gl.uniform3f(param['uloc'], param['value'][0], param['value'][1], param['value'][2]);
+          break;
+        }
+        break;
+      case 'int':
+        switch(param['value'].length) {
+          case 1:
+            gl.uniform1i(param['uloc'], param['value'][0]);
+          break;
+          case 2:
+            gl.uniform2i(param['uloc'], param['value'][0], param['value'][1]);
+          break;
+          case 3:
+            gl.uniform3i(param['uloc'], param['value'][0], param['value'][1], param['value'][2]);
+          break;
+        }
+        break;
+    }
+  });
 
   // Specify the texture to map onto the faces.
 
@@ -347,10 +378,11 @@ function initShaders() {
       domeRadiusULoc = gl.getUniformLocation(shaderProgram, "sphereRadius");
       domePositionULoc = gl.getUniformLocation(shaderProgram, "spherePosition");
       domeOrientationULoc = gl.getUniformLocation(shaderProgram, "sphereOrientation");
-      horizontalFOVULoc = gl.getUniformLocation(shaderProgram, "horizontalFOV");
       domeLatitudeULoc = gl.getUniformLocation(shaderProgram, "sphereLatitude");
 
-      //TODO: set pattern textures, since they won't change
+      params.forEach(function(param) {
+        param["uloc"] = gl.getUniformLocation(shaderProgram, param["name"]);
+      });
 
   }, function (url) {
       alert('Failed to download "' + url + '"');
@@ -560,18 +592,40 @@ function videoDone() {
 }
 
 function initGUI() {
-  params = {};
-  params.horizontalFOV = 120;
-  params.domeRadius = 3.0;
-  params.domePosX = 0.0;
-  params.domePosY = 0.0;
-  params.domePosZ = 10.0;
-  params.domeOrtX = 0.0;
-  params.domeOrtY = 0.0;
-  params.domeOrtZ = 0.0;
-  params.domeLatitude = 90.0;
+  var uiContainer = document.getElementById('ui');
+  params.forEach(function(param) {
+    for (var i  = 0; i < param['value'].length; i++) {
+      var labelElement = document.createElement('span');
+      labelElement.textContent = param['label'][i];
+      var numberInput = document.createElement('input');
+      numberInput.type = 'number';
+      numberInput.id = param['name'][i] + param['suffix'][i] + "-input";
+      numberInput.value = param['value'][i];
 
-  initGUIElement("fov", "horizontalFOV");
+      var rangeInput = document.createElement('input');
+      rangeInput.type = 'range';
+      rangeInput.id = param['name'][i] + param['suffix'][i] + "-slider";
+      rangeInput.min = param['min'][i];
+      rangeInput.max = param['max'][i];
+      rangeInput.value = param['value'][i];
+      rangeInput.className = 'full-width';
+
+      rangeInput.addEventListener('input', function(event) {
+        param['value'][i] = numberInput.value = event.target.value;
+      });
+      numberInput.addEventListener('input', function(event) {
+        param['value'][i] = rangeInput.value = event.target.value;
+      });
+
+      uiContainer.appendChild(labelElement);
+      uiContainer.appendChild(numberInput);
+      uiContainer.appendChild(rangeInput);
+      console.log(labelElement);
+      console.log(numberInput);
+      console.log(rangeInput);
+    }
+  });
+
   initGUIElement("dome-rad", "domeRadius");
   initGUIElement("dome-pos-x", "domePosX");
   initGUIElement("dome-pos-y", "domePosY");
@@ -612,4 +666,36 @@ function deg2Rad(d) {
 
 function rad2Deg(r) {
   return r * 180 / Math.PI;
+}
+
+function setupParams() {
+  params = [];
+  params.push({
+    name: "uHorizontalFOV",
+    label: ["horizontal fov: "],
+    suffix: [""],
+    value: [120],
+    type: "float",
+    min: [5],
+    max: [170]
+  });
+  params.push({
+    name: "uSphereRadius",
+    label: ["dome radius: "],
+    suffix: [""],
+    value: [3],
+    type: "float",
+    min: [1],
+    max: [100]
+  });
+  /*
+  params.domeRadius = 3.0;
+  params.domePosX = 0.0;
+  params.domePosY = 0.0;
+  params.domePosZ = 10.0;
+  params.domeOrtX = 0.0;
+  params.domeOrtY = 0.0;
+  params.domeOrtZ = 0.0;
+  params.domeLatitude = 90.0;
+  */
 }

@@ -25,7 +25,7 @@ uniform vec3 zoom;
 uniform int patternType;
 */
 
-uniform float horizontalFOV; //horizontal
+uniform float uHorizontalFOV; //horizontal
 //all of the below are (should be!) normalized
 //the eyePos is treated as an origin!
 uniform vec2 size;
@@ -38,6 +38,7 @@ uniform float sphereRadius;
 uniform float sphereLatitude;
 
 uniform vec2 cameraRotation;
+uniform vec2 cameraPosition;
 
 uniform float frMix;
 uniform float ofrMix;
@@ -80,9 +81,17 @@ vec3 rotateZ(vec3 v, float theta) {
   return vec3(x,y,z);
 }
 
-vec2 getBothFOV(float theHorizontalFOV, float theAspectRatio) {
-	float vertFOV = atan(tan(theHorizontalFOV * 0.5)/theAspectRatio) * 2.0;
-	return vec2(theHorizontalFOV, vertFOV);
+vec2 getBothFOV(float theuHorizontalFOV, float theAspectRatio) {
+	float vertFOV = atan(tan(theuHorizontalFOV * 0.5)/theAspectRatio) * 2.0;
+	return vec2(theuHorizontalFOV, vertFOV);
+}
+
+float deg2Rad(float d) {
+  return d * PI / 180.0;
+}
+
+float rad2Deg(float r) {
+  return r * 180.0 / PI;
 }
 
 //this takes latitude and longitude coordinates (possibly of the [[0,TWO_PI],[0,PI]] range)
@@ -219,7 +228,7 @@ VectorPair getEyeSphereIntersection (vec3 eyeVec, vec3 offsetVec, vec4 sphereDat
 
 void main() {
 	vec2 aspectRatio = size / size.xx;
-	vec2 fieldOfView = getBothFOV(horizontalFOV, aspectRatio.y);
+	vec2 fieldOfView = getBothFOV(uHorizontalFOV, aspectRatio.y);
 	//vec2 fieldOfView = vec2(1.0, 1.0);
 	//normalizing and mapping to the [-1.0,1.0] range
 	//TODO: check for bugs!
@@ -275,7 +284,7 @@ void main() {
 			}
 			//gl_FragColor = texture2D(src_tex, mapFromLatLongToAzimuthalTexel(longLat, latLimit).st);
 			gl_FragColor = texture2D(src_tex, mapFromLatLongToPanoramicTexel(longLat1));
-			gl_FragColor = texture2D(src_tex, mapFromLatLongToAzimuthalTexel(longLat1, latLimit	).st);
+			// gl_FragColor = texture2D(src_tex, mapFromLatLongToAzimuthalTexel(longLat1, latLimit	).st);
 		  // gl_FragColor = texture2D(src_tex, src_coord / size);
 		} else {
 			if (longLat.y >= latLimit) {
@@ -283,7 +292,7 @@ void main() {
 			}
 			//gl_FragColor = texture2D(src_tex, mapFromLatLongToAzimuthalTexel(longLat, latLimit).st);
 			 gl_FragColor = mix(texture2D(src_tex, mapFromLatLongToPanoramicTexel(longLat)), vec4(0.2,0.2,0.2,1.0), 0.6);
- 			 gl_FragColor = mix(texture2D(src_tex, mapFromLatLongToAzimuthalTexel(longLat, latLimit).st), vec4(0.2,0.2,0.2,1.0), 0.6);
+ 		// 	 gl_FragColor = mix(texture2D(src_tex, mapFromLatLongToAzimuthalTexel(longLat, latLimit).st), vec4(0.2,0.2,0.2,1.0), 0.6);
 		  // gl_FragColor = texture2D(src_tex, src_coord / size);
 		}
 	}
