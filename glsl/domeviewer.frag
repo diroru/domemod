@@ -7,9 +7,8 @@ const float PI = 3.14159265359;
 uniform float uHorizontalFOV; //horizontal
 //all of the below are (should be!) normalized
 //the eyePos is treated as an origin!
-uniform vec2 size;
-uniform sampler2D panoramicTexture;
-uniform sampler2D src_tex;
+uniform vec2 uSize;
+uniform sampler2D uSrcTex;
 
 uniform vec3 uSpherePosition;
 uniform vec2 uSphereOrientation;
@@ -20,6 +19,8 @@ uniform vec2 uCameraOrientation;
 uniform vec3 uCameraPosition;
 
 uniform bool uShowGrid;
+uniform int uSrcTexProjType;
+// uniform float uNearPlane;
 
 uniform float frMix;
 uniform float ofrMix;
@@ -235,7 +236,8 @@ VectorPair getEyeSphereIntersection (vec3 eyeVec, vec3 offsetVec, vec4 sphereDat
 vec3 getLatitudeGrid(vec2 longLat, float gratOffset, float gratWidth, vec3 gratColour) {
 	float aa = 0.1;
 	float gr = mod(rad2Deg(longLat.y) + gratWidth * 0.5, gratOffset) - gratWidth * 0.5;
-	return mix(gratColour, vec3(0.0), smoothstep(gratWidth*0.5 - aa, gratWidth*0.5 + aa, abs(gr)));
+	// return mix(gratColour, vec3(0.0), smoothstep(gratWidth*0.5 - aa, gratWidth*0.5 + aa, abs(gr)));
+	return mix(gratColour, vec3(0.0), step(gratWidth, abs(gr)));
 }
 
 vec3 getLongtitudeGrid(vec2 longLat, float gratOffset, float gratWidth, vec3 gratColour) {
@@ -248,7 +250,8 @@ vec3 getLongtitudeGrid(vec2 longLat, float gratOffset, float gratWidth, vec3 gra
 	} else {
 		float go = gratWidth / sin(longLat.y);
 		float gr = mod(longDeg + go * 0.5, gratOffset) - go * 0.5;
-		return mix(gratColour, vec3(0.0), smoothstep(go*0.5 - aa, go*0.5 + aa, abs(gr)));
+		// return mix(gratColour, vec3(0.0), smoothstep(go*0.5 - aa, go*0.5 + aa, abs(gr)));
+		return mix(gratColour, vec3(0.0), step(go, abs(gr)));
 	}
 	/*
 
@@ -272,19 +275,23 @@ vec3 getGrid(vec2 longLat, vec3 colour) {
 }
 
 void main() {
-	vec2 aspectRatio = size / size.xx;
+	vec2 aspectRatio = uSize / uSize.xx;
 	//normalizing and mapping to the [-1.0,1.0] range
 	//TODO: check for bugs!
-	 vec2 normCoord = (gl_FragCoord.xy / size - vec2(0.5)) * aspectRatio * 2.0;
+	 vec2 normCoord = (gl_FragCoord.xy / uSize - vec2(0.5)) * aspectRatio * 2.0;
 	//  normCoord.x = - normCoord.x;
 
 	vec3 transformedSpherePosition = uSpherePosition - uCameraPosition;
+	/*
 	transformedSpherePosition = rotateX(transformedSpherePosition, deg2Rad(uCameraOrientation.y));
 	transformedSpherePosition = rotateY(transformedSpherePosition, deg2Rad(uCameraOrientation.x));
+	*/
 	vec4 sphereData = vec4(transformedSpherePosition, uSphereRadius);
 
 	//already normalized?!
 	vec3 rectiliniearRay = getRectiliniearRay(normCoord, deg2Rad(uHorizontalFOV));
+	rectiliniearRay = rotateX(rectiliniearRay, deg2Rad(uCameraOrientation.y));
+	rectiliniearRay = rotateY(rectiliniearRay, deg2Rad(uCameraOrientation.x));
 	vec3 rectiliniearOffset = vec3(0.0);
 
 	/*
@@ -322,40 +329,57 @@ void main() {
 	// vec2 longLat1 = mod(getLongLat(ray * kappa.y, p, sphereOrientation) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
 	// vec2 longLat0 = mod(getLongLat(sphereIntersection[0], p, sphereOrientation) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
 	// vec2 longLat1 = mod(getLongLat(sphereIntersection[1], p, sphereOrientation) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
-	vec2 longLat0 = mod(getLongLat(sphereIntersections.minor.xyz, sphereData.xyz, deg2Rad(uSphereOrientation)) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
+	vec2 longLat0 = mod(getLongLat(sphereIntersections.minor.xyz, sphereData.xyz, deg2Rad(uSphereOrientation )) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
 	vec2 longLat1 = mod(getLongLat(sphereIntersections.major.xyz, sphereData.xyz, deg2Rad(uSphereOrientation)) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
 
+	// float uNearPlane = 0.05 ;
+	vec3 uNearPlaneVec = vec3(rectiliniearRay);
+	uNearPlaneVec = normalize(uNearPlaneVec)*0.05;
+	float uNearPlane = length(uNearPlaneVec);
+	// uNearPlane = rotateX(uNearPlane, deg2Rad(uCameraOrientation.y));
+	// uNearPlane = rotateY(uNearPlane, deg2Rad(uCameraOrientation.x));
 	vec2 longLat = longLat0;
 
-	float nearPlane = 0.01;
-
-	if (sphereIntersections.major.z < -nearPlane || !sphereIntersections.isReal ) {
+	if (sphereIntersections.major.z < -uNearPlane || !sphereIntersections.isReal ) {
 		gl_FragColor = vec4(0.2, 0.2, 0.2, 1.0);
 	} else {
-		if (sphereIntersections.minor.z < nearPlane || longLat.y >= latLimit) {
+		if (sphereIntersections.minor.z < uNearPlane || longLat.y >= latLimit) {
 			if (longLat1.y >= latLimit) {
 				discard;
 			}
-			//gl_FragColor = texture2D(src_tex, mapFromLatLongToAzimuthalTexel(longLat, latLimit).st);
-			gl_FragColor = texture2D(src_tex, mapFromLatLongToPanoramicTexel(longLat1));
+			//gl_FragColor = texture2D(uSrcTex, mapFromLatLongToAzimuthalTexel(longLat, latLimit).st);
+			if (uSrcTexProjType == 0) {
+				gl_FragColor = texture2D(uSrcTex, mapFromLatLongToPanoramicTexel(longLat1));
+			} else if (uSrcTexProjType == 1) {
+				gl_FragColor = texture2D(uSrcTex, 	mapFromLatLongToAzimuthalTexel(longLat1, PI * 0.5).st);
+			} else {
+				gl_FragColor = texture2D(uSrcTex, 	mapFromLatLongToAzimuthalTexel(longLat1, PI).st);
+			}
 			if (uShowGrid) {
 				vec3 gridColour = getGrid(longLat1, vec3(1.0, 1.0, 0.0));
 				gl_FragColor = gl_FragColor + vec4(gridColour, 1.0) * 0.2;
 			}
-			// gl_FragColor = texture2D(src_tex, mapFromLatLongToAzimuthalTexel(longLat1, latLimit	).st);
-		  // gl_FragColor = texture2D(src_tex, src_coord / size);
+			// gl_FragColor = texture2D(uSrcTex, mapFromLatLongToAzimuthalTexel(longLat1, latLimit	).st);
+		  // gl_FragColor = texture2D(uSrcTex, src_coord / uSize);
 		} else {
 			if (longLat.y >= latLimit) {
 				discard;
 			}
-			//gl_FragColor = texture2D(src_tex, mapFromLatLongToAzimuthalTexel(longLat, latLimit).st);
-			 gl_FragColor = mix(texture2D(src_tex, mapFromLatLongToPanoramicTexel(longLat)), vec4(0.2,0.2,0.2,1.0), 0.6);
+			//gl_FragColor = texture2D(uSrcTex, mapFromLatLongToAzimuthalTexel(longLat, latLimit).st);
+			if (uSrcTexProjType == 0) {
+				gl_FragColor = texture2D(uSrcTex, mapFromLatLongToPanoramicTexel(longLat));
+			} else if (uSrcTexProjType == 1) {
+				gl_FragColor = texture2D(uSrcTex, 	mapFromLatLongToAzimuthalTexel(longLat, PI * 0.5).st);
+			} else {
+				gl_FragColor = texture2D(uSrcTex, 	mapFromLatLongToAzimuthalTexel(longLat, PI).st);
+			}
+			 gl_FragColor = mix(gl_FragColor, vec4(0.2,0.2,0.2,1.0), 0.6);
 			 if (uShowGrid) {
 				 vec3 gridColour = getGrid(longLat, vec3(1.0, 1.0, 0.0));
 			 	 gl_FragColor = gl_FragColor + vec4(gridColour, 1.0) * 0.35;
 		 	 }
- 		// 	 gl_FragColor = mix(texture2D(src_tex, mapFromLatLongToAzimuthalTexel(longLat, latLimit).st), vec4(0.2,0.2,0.2,1.0), 0.6);
-		  // gl_FragColor = texture2D(src_tex, src_coord / size);
+ 		// 	 gl_FragColor = mix(texture2D(uSrcTex, mapFromLatLongToAzimuthalTexel(longLat, latLimit).st), vec4(0.2,0.2,0.2,1.0), 0.6);
+		  // gl_FragColor = texture2D(uSrcTex, src_coord / uSize);
 		}
 	}
 }

@@ -15,9 +15,10 @@ var shaderProgram;
 var vertexPositionAttribute;
 var textureCoordAttribute;
 //uniform locations
-var sizeULoc,
-    srcTexULoc,
-    uShowGridLoc;
+var uSizeLoc,
+    uSrcTexLoc,
+    uShowGridLoc,
+    uSrcTexProjTypeLoc;
 
 var mediaContainer,
     mediaElement;
@@ -25,14 +26,20 @@ var mediaContainer,
 /*parameter*/
 var params;
 
-var screenWidth, screenHeight, showGrid = 1;
+var screenWidth, screenHeight, showGrid = 0;
 
 var currentURL;
 
 var srcTexInfo = {
   shouldUpdate : false,
-  type: undefined
+  type: undefined,
+  //0 – equirectangular
+  //1 - azimuthal 180°
+  //2 - azimuthal 360 °
+  projection_type: 0
 };
+
+
 
 //
 // start
@@ -58,10 +65,11 @@ function start() {
   if (gl) {
     fitCanvas();
     gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
-    //gl.clearDepth(1.0);                 // Clear everything
-    //gl.enable(gl.DEPTH_TEST);           // Enable depth testing
-    //gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
-
+    /*
+    gl.clearDepth(1.0);                 // Clear everything
+    gl.enable(gl.DEPTH_TEST);           // Enable depth testing
+    gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
+    */
     // Initialize the shaders; this is where all the lighting for the
     // vertices and so forth is established.
 
@@ -322,15 +330,16 @@ function drawScene() {
   });
 
 
-  gl.uniform2f(sizeULoc, gl.canvas.width, gl.canvas.height);
+  gl.uniform2f(uSizeLoc, gl.canvas.width, gl.canvas.height);
 
   gl.uniform1i(uShowGridLoc, showGrid);
+  gl.uniform1i(uSrcTexProjTypeLoc, srcTexInfo.projection_type);
   // Specify the texture to map onto the faces.
 
   var unitNo = 0;
   gl.activeTexture(gl.TEXTURE0 + unitNo);
   gl.bindTexture(gl.TEXTURE_2D, sourceTexture);
-  gl.uniform1i(srcTexULoc, unitNo);
+  gl.uniform1i(uSrcTexLoc, unitNo);
   unitNo++;
 
   // Draw the quad.
@@ -385,9 +394,10 @@ function initShaders() {
       gl.enableVertexAttribArray(textureCoordAttribute);
 
       //getting uniform locations
-      srcTexULoc = gl.getUniformLocation(shaderProgram, "src_tex");
-      sizeULoc = gl.getUniformLocation(shaderProgram, "size");
+      uSrcTexLoc = gl.getUniformLocation(shaderProgram, "uSrcTex");
+      uSizeLoc = gl.getUniformLocation(shaderProgram, "uSize");
       uShowGridLoc = gl.getUniformLocation(shaderProgram, "uShowGrid");
+      uSrcTexProjTypeLoc = gl.getUniformLocation(shaderProgram, "uSrcTexProjType");
       /*
       domeRadiusULoc = gl.getUniformLocation(shaderProgram, "sphereRadius");
       domePositionULoc = gl.getUniformLocation(shaderProgram, "spherePosition");
@@ -614,6 +624,25 @@ function videoDone() {
 
 function initGUI() {
   var uiContainer = document.getElementById('ui');
+  var projTypeLabel = document.createElement('span');
+  projTypeLabel.textContent = 'projection type:';
+  var projTypeDropdown = document.createElement('select');
+  var projections = ['equirectangular', 'azimuthal-90', 'azimuthal-180'];
+  var i = 0;
+  projections.forEach(function(proj) {
+    var opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = proj;
+    projTypeDropdown.appendChild(opt);
+    i++;
+  });
+  projTypeDropdown.addEventListener('change', function(event) {
+    srcTexInfo.projection_type = event.target.value;
+    console.log("proj type", srcTexInfo.projection_type);
+  });
+
+  uiContainer.appendChild(projTypeLabel);
+  uiContainer.appendChild(projTypeDropdown);
   params.forEach(function(param) {
     for (var i  = 0; i < param['value'].length; i++) {
       var labelElement = document.createElement('span');
@@ -621,16 +650,22 @@ function initGUI() {
       var numberInput = document.createElement('input');
       numberInput.type = 'number';
       numberInput.id = param['name'] + param['suffix'][i] + "-input";
+      // numberInput.min = param['min'][i];
       numberInput.value = param['value'][i];
+      // numberInput.max = param['max'][i];
       // numberInput.size = '4';
       numberInput.className = 'number-input';
 
       var rangeInput = document.createElement('input');
       rangeInput.type = 'range';
       rangeInput.id = param['name'] + param['suffix'][i] + "-slider";
-      rangeInput.min = param['min'][i];
-      rangeInput.max = param['max'][i];
-      rangeInput.value = param['value'][i];
+      if (param['step'] !== undefined) {
+        rangeInput.step = param['step'][i];
+      }
+      rangeInput.min = parseFloat(param['min'][i]);
+      rangeInput.value = parseFloat(param['value'][i]);
+      rangeInput.max = parseFloat(param['max'][i]);
+
       rangeInput.className = 'full-width';
 
       rangeInput.addEventListener('input', function(otherInput, param, index, event) {
@@ -745,4 +780,16 @@ function setupParams() {
     min: [0],
     max: [180]
   });
+  /*
+  params.push({
+    name: "uNearPlane",
+    label: ["near plane: "],
+    suffix: [""],
+    value: [0.05],
+    type: "float",
+    min: [0.01],
+    max: [1.0],
+    step: [0.005]
+  });
+  */
 }
