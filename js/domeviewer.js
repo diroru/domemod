@@ -25,7 +25,9 @@ var mediaContainer,
 /*parameter*/
 var params;
 
-var screenWidth, screenHeight, showGrid = 0;
+var screenWidth, screenHeight, showGrid = 1;
+
+var currentURL;
 
 var srcTexInfo = {
   shouldUpdate : false,
@@ -47,6 +49,7 @@ function start() {
   canvas = document.getElementById("glcanvas");
 
   setupParams();
+  // loadDefaultImage('./assets/images/Equirectangular_projection_SW.jpg');
   initGUI();
   initWebGL(canvas);      // Initialize the GL context
 
@@ -55,7 +58,7 @@ function start() {
   if (gl) {
     fitCanvas();
     gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
-    gl.clearDepth(1.0);                 // Clear everything
+    //gl.clearDepth(1.0);                 // Clear everything
     //gl.enable(gl.DEPTH_TEST);           // Enable depth testing
     //gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
 
@@ -75,6 +78,13 @@ function start() {
 
     // activateVideoListeners(videoElement);
   }
+
+  /*
+  FileReader reader = new FileReader();
+  reader.onload = function(theFile) {
+      initImage(theFile);
+  };
+  */
 }
 
 //see:
@@ -82,12 +92,27 @@ function start() {
 //http://stackoverflow.com/questions/11819768/webgl-gl-viewport-change
 //http://webglfundamentals.org/webgl/lessons/webgl-anti-patterns.html
 
+function loadDefaultImage(path) {
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.onreadystatechange = function(){
+  if(xmlhttp.status == 200 && xmlhttp.readyState == 4){
+    var data = xmlhttp.responseText;
+    initImage(new File([data], path));
+  }
+  };
+  xmlhttp.open("GET",path,true);
+  xmlhttp.send();
+}
+
 function fitCanvas() {
   var width = gl.canvas.clientWidth;
   var height = gl.canvas.clientHeight;
+  var pr = window.devicePixelRatio;
+  //TODO!
+  // pr = 1.0;
   if (gl.canvas.width != width || gl.canvas.height != height) {
-     gl.canvas.width = width;
-     gl.canvas.height = height;
+     gl.canvas.width = width * pr;
+     gl.canvas.height = height * pr;
      if (gl) {
          gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
      }
@@ -297,7 +322,7 @@ function drawScene() {
   });
 
 
-  gl.uniform2f(sizeULoc, gl.canvas.clientWidth, gl.canvas.clientHeight);
+  gl.uniform2f(sizeULoc, gl.canvas.width, gl.canvas.height);
 
   gl.uniform1i(uShowGridLoc, showGrid);
   // Specify the texture to map onto the faces.
@@ -428,77 +453,11 @@ function setupFileHandling() {
   mediaContainer = document.getElementById("media-container");
   if (window.File && window.FileReader && window.FileList && window.Blob) {
 
-     //this is not completely neccesary, just a nice function I found to make the file size format friendlier
-  	//http://stackoverflow.com/questions/10420352/converting-file-size-in-bytes-to-human-readable
-  	function humanFileSize(bytes, si) {
-  	    var thresh = si ? 1000 : 1024;
-  	    if(bytes < thresh) return bytes + ' B';
-  	    var units = si ? ['kB','MB','GB','TB','PB','EB','ZB','YB'] : ['KiB','MiB','GiB','TiB','PiB','EiB','ZiB','YiB'];
-  	    var u = -1;
-  	    do {
-  	        bytes /= thresh;
-  	        ++u;
-  	    } while(bytes >= thresh);
-  	    return bytes.toFixed(1)+' '+units[u];
-  	}
-
-    function initImage(file){
-		    var url = URL.createObjectURL(file);
-        //TODO: check and stop existing media!
-        //TODO: on cancel?
-        srcTexInfo.shouldUpdate = false;
-
-        if (srcTexInfo.type === 'video') {
-          clearVideo();
-        }
-        if (srcTexInfo.type === 'image') {
-          clearImage();
-        }
-
-        var imageElement = document.createElement("img");
-
-        imageElement.addEventListener('load', loadImageCallback, true);
-
-        imageElement.setAttribute('src', url);
-        mediaContainer.appendChild(imageElement);
-        mediaElement = imageElement;
-        //DEBUGGING
-
-        srcTexInfo.type = 'image';
-        srcTexInfo.shouldUpdate = true;
-        console.log("init image called", mediaElement);
-  	}
-
-  	function initVideo(file){
-		    var url = URL.createObjectURL(file);
-        //TODO: check and stop existing media!
-        //TODO: on cancel?
-        srcTexInfo.shouldUpdate = false;
-
-        if (srcTexInfo.type === 'video') {
-          clearVideo();
-        }
-        if (srcTexInfo.type === 'image') {
-          clearImage();
-        }
-
-        //of course using a template library like handlebars.js is a better solution than just inserting a string
-        var videoElement = document.createElement("video");
-        videoElement.addEventListener("canplaythrough", startVideo.bind(videoElement), true);
-        videoElement.addEventListener("ended", videoDone, true);
-        videoElement.setAttribute('src', url);
-        videoElement.setAttribute('autoplay', '');
-        // videoElement.setAttribute('muted', '');
-        videoElement.setAttribute('loop', '');
-        videoElement.setAttribute('type', file.type);
-        mediaContainer.appendChild(videoElement);
-        mediaElement = videoElement;
-  	}
-
     //console.log(document);
-    document.getElementById("the-video-file-field").addEventListener('change', function() {
+    document.getElementById("the-video-file-field").addEventListener('change', function(event) {
   		//grab the first image in the fileList
   		//in this example we are only loading one file.
+      console.log("file field event", event, event.files);
       var file = this.files[0];
       if (file !== undefined) {
         console.log("file size:", file.size);
@@ -533,9 +492,77 @@ function clearVideo() {
     videoElement.removeEventListener("canplaythrough", startVideo, true);
     videoElement.removeEventListener("ended", videoDone, true);
     mediaContainer.removeChild(videoElement);
+    // window.URL.revokeObjectURL(currentURL);
   } catch (e) {
     console.error(e);
   }
+}
+
+//this is not completely neccesary, just a nice function I found to make the file size format friendlier
+//http://stackoverflow.com/questions/10420352/converting-file-size-in-bytes-to-human-readable
+function humanFileSize(bytes, si) {
+   var thresh = si ? 1000 : 1024;
+   if(bytes < thresh) return bytes + ' B';
+   var units = si ? ['kB','MB','GB','TB','PB','EB','ZB','YB'] : ['KiB','MiB','GiB','TiB','PiB','EiB','ZiB','YiB'];
+   var u = -1;
+   do {
+       bytes /= thresh;
+       ++u;
+   } while(bytes >= thresh);
+   return bytes.toFixed(1)+' '+units[u];
+}
+
+function initImage(file){
+   currentURL = URL.createObjectURL(file);
+   //TODO: check and stop existing media!
+   //TODO: on cancel?
+   srcTexInfo.shouldUpdate = false;
+
+   if (srcTexInfo.type === 'video') {
+     clearVideo();
+   }
+   if (srcTexInfo.type === 'image') {
+     clearImage();
+   }
+
+   var imageElement = document.createElement("img");
+
+   imageElement.addEventListener('load', loadImageCallback, true);
+
+   imageElement.setAttribute('src', currentURL);
+   mediaContainer.appendChild(imageElement);
+   mediaElement = imageElement;
+   //DEBUGGING
+
+   srcTexInfo.type = 'image';
+   srcTexInfo.shouldUpdate = true;
+   console.log("init image called", mediaElement);
+}
+
+function initVideo(file){
+   currentURL = URL.createObjectURL(file);
+   //TODO: check and stop existing media!
+   //TODO: on cancel?
+   srcTexInfo.shouldUpdate = false;
+
+   if (srcTexInfo.type === 'video') {
+     clearVideo();
+   }
+   if (srcTexInfo.type === 'image') {
+     clearImage();
+   }
+
+   //of course using a template library like handlebars.js is a better solution than just inserting a string
+   var videoElement = document.createElement("video");
+   videoElement.addEventListener("canplaythrough", startVideo.bind(videoElement), true);
+   videoElement.addEventListener("ended", videoDone, true);
+   videoElement.setAttribute('src', currentURL);
+   videoElement.setAttribute('autoplay', '');
+   // videoElement.setAttribute('muted', '');
+   videoElement.setAttribute('loop', '');
+   videoElement.setAttribute('type', file.type);
+   mediaContainer.appendChild(videoElement);
+   mediaElement = videoElement;
 }
 
 function clearImage() {
@@ -546,6 +573,7 @@ function clearImage() {
     //videoElement.removeAttribute("src");
     imageElement.removeEventListener("load", loadImageCallback, true);
     mediaContainer.removeChild(imageElement);
+    // window.URL.revokeObjectURL(currentURL);
   } catch (e) {
     console.error(e);
   }

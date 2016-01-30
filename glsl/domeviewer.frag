@@ -113,8 +113,9 @@ vec3 getFisheyeRay(vec2 screenCoordNorm, vec2 fieldOfView, vec2 rotation) {
 //we presume that the screen coordinates are normalized to [-1,1], where [0,0] is the middle
 //the result is normalized
 //TODO: implement offset
-vec3 getRectiliniearRay(vec2 screenCoordNorm, vec2 fieldOfView, vec2 rotation) {
-	float focalLength = 0.5 / (tan(fieldOfView.x * 0.5));
+/*
+vec3 getRectiliniearRay(vec2 screenCoordNorm, float horizontalFOV, vec2 rotation) {
+	float focalLength = 0.5 / (tan(horizontalFOV * 0.5));
 
 	//rectilinear
 	//TODO: offset
@@ -127,6 +128,20 @@ vec3 getRectiliniearRay(vec2 screenCoordNorm, vec2 fieldOfView, vec2 rotation) {
 	result = rotateY(result, rotation.x);
 
 	return result;
+}
+*/
+//we presume that the screen coordinates are normalized to [-1,1], where [0,0] is the middle
+//the result is normalized
+//TODO: calculate focalLength on CPU and make it uniform
+vec3 getRectiliniearRay(vec2 screenCoordNorm, float horizontalFOV) {
+	float focalLength = 0.5 / (tan(horizontalFOV * 0.5));
+	//rectilinear
+	//TODO: offset
+	float x = -screenCoordNorm.x * 0.5;
+	float y = -screenCoordNorm.y * 0.5;
+	float z = focalLength;
+
+	return normalize(vec3(x,y,z));
 }
 
 
@@ -258,17 +273,18 @@ vec3 getGrid(vec2 longLat, vec3 colour) {
 
 void main() {
 	vec2 aspectRatio = size / size.xx;
-	vec2 fieldOfView = getBothFOV(deg2Rad(uHorizontalFOV), aspectRatio.y);
-	//vec2 fieldOfView = vec2(1.0, 1.0);
 	//normalizing and mapping to the [-1.0,1.0] range
 	//TODO: check for bugs!
 	 vec2 normCoord = (gl_FragCoord.xy / size - vec2(0.5)) * aspectRatio * 2.0;
 	//  normCoord.x = - normCoord.x;
 
-	vec4 sphereData = vec4(uSpherePosition - uCameraPosition, uSphereRadius);
+	vec3 transformedSpherePosition = uSpherePosition - uCameraPosition;
+	transformedSpherePosition = rotateX(transformedSpherePosition, deg2Rad(uCameraOrientation.y));
+	transformedSpherePosition = rotateY(transformedSpherePosition, deg2Rad(uCameraOrientation.x));
+	vec4 sphereData = vec4(transformedSpherePosition, uSphereRadius);
 
 	//already normalized?!
-	vec3 rectiliniearRay = normalize(getRectiliniearRay(normCoord, fieldOfView, deg2Rad(uCameraOrientation)));
+	vec3 rectiliniearRay = getRectiliniearRay(normCoord, deg2Rad(uHorizontalFOV));
 	vec3 rectiliniearOffset = vec3(0.0);
 
 	/*
