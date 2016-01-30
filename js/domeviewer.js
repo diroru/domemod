@@ -16,7 +16,8 @@ var vertexPositionAttribute;
 var textureCoordAttribute;
 //uniform locations
 var sizeULoc,
-    srcTexULoc;
+    srcTexULoc,
+    uShowGridLoc;
 
 var mediaContainer,
     mediaElement;
@@ -24,7 +25,7 @@ var mediaContainer,
 /*parameter*/
 var params;
 
-var screenWidth, screenHeight;
+var screenWidth, screenHeight, showGrid = 0;
 
 var srcTexInfo = {
   shouldUpdate : false,
@@ -298,7 +299,7 @@ function drawScene() {
 
   gl.uniform2f(sizeULoc, gl.canvas.clientWidth, gl.canvas.clientHeight);
 
-
+  gl.uniform1i(uShowGridLoc, showGrid);
   // Specify the texture to map onto the faces.
 
   var unitNo = 0;
@@ -361,11 +362,13 @@ function initShaders() {
       //getting uniform locations
       srcTexULoc = gl.getUniformLocation(shaderProgram, "src_tex");
       sizeULoc = gl.getUniformLocation(shaderProgram, "size");
+      uShowGridLoc = gl.getUniformLocation(shaderProgram, "uShowGrid");
+      /*
       domeRadiusULoc = gl.getUniformLocation(shaderProgram, "sphereRadius");
       domePositionULoc = gl.getUniformLocation(shaderProgram, "spherePosition");
       domeOrientationULoc = gl.getUniformLocation(shaderProgram, "sphereOrientation");
       domeLatitudeULoc = gl.getUniformLocation(shaderProgram, "sphereLatitude");
-
+      */
       params.forEach(function(param) {
         param["uloc"] = gl.getUniformLocation(shaderProgram, param["name"]);
       });
@@ -485,7 +488,7 @@ function setupFileHandling() {
         videoElement.addEventListener("ended", videoDone, true);
         videoElement.setAttribute('src', url);
         videoElement.setAttribute('autoplay', '');
-        videoElement.setAttribute('muted', '');
+        // videoElement.setAttribute('muted', '');
         videoElement.setAttribute('loop', '');
         videoElement.setAttribute('type', file.type);
         mediaContainer.appendChild(videoElement);
@@ -497,16 +500,20 @@ function setupFileHandling() {
   		//grab the first image in the fileList
   		//in this example we are only loading one file.
       var file = this.files[0];
-  		console.log("file size:", file.size);
-      console.log("file type:", file.type);
-      //TODO: decide media type here?
-      if(file.type.match(/video\/*/)){
-  		  initVideo(this.files[0]);
-      } else if (file.type.match(/image\/*/)) {
-        //TODO:
-        initImage(this.files[0]);
+      if (file !== undefined) {
+        console.log("file size:", file.size);
+        console.log("file type:", file.type);
+        //TODO: decide media type here?
+        if(file.type.match(/video\/*/)){
+    		  initVideo(this.files[0]);
+        } else if (file.type.match(/image\/*/)) {
+          //TODO:
+          initImage(this.files[0]);
+        } else {
+          console.log("Couldn't interpret image/video file: ", this.files[0]);
+        }
       } else {
-        console.log("Couldn't interpret image/video file: ", this.files[0]);
+        console.log("probably cancelled.");
       }
   	}, false);
 
@@ -579,31 +586,32 @@ function videoDone() {
 
 function initGUI() {
   var uiContainer = document.getElementById('ui');
-  var j = 0;
   params.forEach(function(param) {
     for (var i  = 0; i < param['value'].length; i++) {
       var labelElement = document.createElement('span');
       labelElement.textContent = param['label'][i];
       var numberInput = document.createElement('input');
       numberInput.type = 'number';
-      numberInput.id = param['name'][i] + param['suffix'][i] + "-input";
+      numberInput.id = param['name'] + param['suffix'][i] + "-input";
       numberInput.value = param['value'][i];
+      // numberInput.size = '4';
+      numberInput.className = 'number-input';
 
       var rangeInput = document.createElement('input');
       rangeInput.type = 'range';
-      rangeInput.id = param['name'][i] + param['suffix'][i] + "-slider";
+      rangeInput.id = param['name'] + param['suffix'][i] + "-slider";
       rangeInput.min = param['min'][i];
       rangeInput.max = param['max'][i];
       rangeInput.value = param['value'][i];
       rangeInput.className = 'full-width';
 
       rangeInput.addEventListener('input', function(otherInput, param, index, event) {
-        console.log(event, otherInput, param, index);
+        // console.log(event, otherInput, param, index);
         param['value'][index] = event.target.value;
         otherInput.value = event.target.value;
       }.bind(null, numberInput, param, i));
       numberInput.addEventListener('input', function(otherInput, param, index, event) {
-        console.log(event, otherInput, param, index);
+        // console.log(event, otherInput, param, index);
         param['value'][index] = event.target.value;
         otherInput.value = event.target.value;
       }.bind(null, rangeInput, param, i));
@@ -611,12 +619,22 @@ function initGUI() {
       uiContainer.appendChild(labelElement);
       uiContainer.appendChild(numberInput);
       uiContainer.appendChild(rangeInput);
-      console.log(labelElement);
-      console.log(numberInput);
-      console.log(rangeInput);
+      // console.log(labelElement);
+      // console.log(numberInput);
+      // console.log(rangeInput);
     }
-    j++;
   });
+  var showGridLabel = document.createElement('span');
+  showGridLabel.textContent = "show grid";
+  var showGridCheckBox = document.createElement('input');
+  showGridCheckBox.type = "checkbox";
+  showGridCheckBox.addEventListener('change', function(event) {
+    showGrid = (showGrid + 1) % 2;
+    console.log("chkbox", event.target.value, this.value);
+  });
+  uiContainer.appendChild(showGridLabel);
+  uiContainer.appendChild(showGridCheckBox);
+  console.log(showGridLabel, showGridCheckBox);
 }
 
 function initGUIElement(id, paramName, startingValue) {
@@ -655,22 +673,31 @@ function setupParams() {
     max: [170]
   });
   params.push({
-    name: "uSphereRadius",
-    label: ["dome radius: "],
-    suffix: [""],
-    value: [3],
-    type: "float",
-    min: [1],
-    max: [100]
-  });
-  params.push({
-    name: "uSpherePosition",
-    label: ["dome position x: ", "dome position y: ", "dome position z: "],
+    name: "uCameraPosition",
+    label: ["camera position x: ", "camera position y: ", "camera position z: "],
     suffix: ["-X", "-Y", "-Z"],
-    value: [0, 0, 0],
+    value: [0, 0, -70],
     type: "float",
     min: [-100, -100, -100],
     max: [100, 100, 100]
+  });
+  params.push({
+    name: "uCameraOrientation",
+    label: ["camera orientation x: ", "camera orientation y: "],
+    suffix: ["-X", "-Y"],
+    value: [0, 0],
+    type: "float",
+    min: [-180, -180],
+    max: [180, 180]
+  });
+  params.push({
+    name: "uSphereRadius",
+    label: ["dome radius: "],
+    suffix: [""],
+    value: [50],
+    type: "float",
+    min: [1],
+    max: [100]
   });
   params.push({
     name: "uSphereOrientation",
