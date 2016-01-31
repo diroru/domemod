@@ -113,26 +113,6 @@ vec3 getFisheyeRay(vec2 screenCoordNorm, vec2 fieldOfView, vec2 rotation) {
 
 //we presume that the screen coordinates are normalized to [-1,1], where [0,0] is the middle
 //the result is normalized
-//TODO: implement offset
-/*
-vec3 getRectiliniearRay(vec2 screenCoordNorm, float horizontalFOV, vec2 rotation) {
-	float focalLength = 0.5 / (tan(horizontalFOV * 0.5));
-
-	//rectilinear
-	//TODO: offset
-	float x = -screenCoordNorm.x * 0.5;
-	float y = -screenCoordNorm.y * 0.5;
-	float z = focalLength;
-
-	vec3 result = normalize(vec3(x,y,z));
-	result = rotateX(result, rotation.y);
-	result = rotateY(result, rotation.x);
-
-	return result;
-}
-*/
-//we presume that the screen coordinates are normalized to [-1,1], where [0,0] is the middle
-//the result is normalized
 //TODO: calculate focalLength on CPU and make it uniform
 vec3 getRectiliniearRay(vec2 screenCoordNorm, float horizontalFOV) {
 	float focalLength = 0.5 / (tan(horizontalFOV * 0.5));
@@ -253,14 +233,6 @@ vec3 getLongtitudeGrid(vec2 longLat, float gratOffset, float gratWidth, vec3 gra
 		// return mix(gratColour, vec3(0.0), smoothstep(go*0.5 - aa, go*0.5 + aa, abs(gr)));
 		return mix(gratColour, vec3(0.0), step(go, abs(gr)));
 	}
-	/*
-
-	float go = gratOffset * abs(sin(deg2Rad(longLat.y)));
-	float gr = mod(rad2Deg(longLat.x + gratWidth * 0.5), gratOffset);
-	//float go = gratOffset * (1.0 - abs(longLat.y - 90.0) / 90.0);
-
-	return mix(gratColour, vec4(0.0), step(go, gr));
-	*/
 }
 
 
@@ -289,10 +261,6 @@ void main() {
 	vec4 sphereData = vec4(transformedSpherePosition, uSphereRadius);
 
 	vec3 rectiliniearRay = getRectiliniearRay(normCoord, deg2Rad(uHorizontalFOV));
-
-	/*rectiliniearRay = rotateX(rectiliniearRay, deg2Rad(uCameraOrientation.y));
-	rectiliniearRay = rotateY(rectiliniearRay, deg2Rad(uCameraOrientation.x));
-	*/
 	vec3 rectiliniearOffset = vec3(0.0);
 
 	/*
@@ -310,10 +278,6 @@ void main() {
 	VectorPair sphereIntersections = getEyeSphereIntersection(mixedRay, mixedOffset, sphereData);
 	*/
 	VectorPair sphereIntersections = getEyeSphereIntersection(rectiliniearRay, rectiliniearOffset, sphereData);
-
-
-//	vec4 sphereIntersection =  getEyeSphereIntersection(rectiliniearRay, rectiliniearOffset, sphereData);
-	//vec4 sphereIntersection[2] = vec4[](sphereIntersections.minor, sphereIntersections.major);
 
 	//for performance use this:
 	/*
@@ -334,23 +298,6 @@ void main() {
 	vec2 longLat1 = mod(getLongLat(sphereIntersections.major.xyz, sphereData.xyz, deg2Rad(uSphereOrientation - uCameraOrientation)) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
 
 	float uNearPlane = 0.05 ;
-	/*
-	vec3 uNearPlaneVec = vec3(rectiliniearRay);
-	uNearPlaneVec = normalize(uNearPlaneVec)*0.05;
-	float uNearPlane = length(uNearPlaneVec);
-	// uNearPlane = rotateX(uNearPlane, deg2Rad(uCameraOrientation.y));
-	// uNearPlane = rotateY(uNearPlane, deg2Rad(uCameraOrientation.x));
-
-
-	vec3 nearPlaneRefVec = vec3(0.0, 0.0, -0.05);
-	nearPlaneRefVec = rotateX(nearPlaneRefVec, deg2Rad(uCameraOrientation.y));
-	nearPlaneRefVec = rotateY(nearPlaneRefVec, deg2Rad(uCameraOrientation.x));
-
-	float cos_theta_minor = dot(normalize(sphereIntersections.minor.xyz),nearPlaneRefVec);
-	float cos_theta_major = dot(normalize(sphereIntersections.major.xyz),nearPlaneRefVec);
-	float nearDist_minor = length(nearPlaneRefVec) / cos_theta_minor;
-	float nearDist_major = length(nearPlaneRefVec) / cos_theta_major;
-	*/
 	vec2 longLat = longLat0;
 
 	if (sphereIntersections.major.z < -uNearPlane || !sphereIntersections.isReal ) {
