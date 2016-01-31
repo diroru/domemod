@@ -216,8 +216,8 @@ VectorPair getEyeSphereIntersection (vec3 eyeVec, vec3 offsetVec, vec4 sphereDat
 	float c = dot(p, p) -  r * r;
 
 	vec3 kappa = quadraticEquationSolution(a, b, c);
-	vec4 color0 = vec4(1.0,1.0,0.0,0.5);
-	vec4 color1 = vec4(kappa.x * eyeVec, 1.0);
+	// vec4 color0 = vec4(1.0,1.0,0.0,0.5);
+	// vec4 color1 = vec4(kappa.x * eyeVec, 1.0);
 
 	vec4 result0 = vec4(offsetVec + eyeVec * kappa.x, 1.0);
 	vec4 result1 = vec4(offsetVec + eyeVec * kappa.y, 1.0);
@@ -282,16 +282,17 @@ void main() {
 	//  normCoord.x = - normCoord.x;
 
 	vec3 transformedSpherePosition = uSpherePosition - uCameraPosition;
-	/*
+
 	transformedSpherePosition = rotateX(transformedSpherePosition, deg2Rad(uCameraOrientation.y));
 	transformedSpherePosition = rotateY(transformedSpherePosition, deg2Rad(uCameraOrientation.x));
-	*/
+
 	vec4 sphereData = vec4(transformedSpherePosition, uSphereRadius);
 
-	//already normalized?!
 	vec3 rectiliniearRay = getRectiliniearRay(normCoord, deg2Rad(uHorizontalFOV));
-	rectiliniearRay = rotateX(rectiliniearRay, deg2Rad(uCameraOrientation.y));
+
+	/*rectiliniearRay = rotateX(rectiliniearRay, deg2Rad(uCameraOrientation.y));
 	rectiliniearRay = rotateY(rectiliniearRay, deg2Rad(uCameraOrientation.x));
+	*/
 	vec3 rectiliniearOffset = vec3(0.0);
 
 	/*
@@ -329,15 +330,27 @@ void main() {
 	// vec2 longLat1 = mod(getLongLat(ray * kappa.y, p, sphereOrientation) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
 	// vec2 longLat0 = mod(getLongLat(sphereIntersection[0], p, sphereOrientation) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
 	// vec2 longLat1 = mod(getLongLat(sphereIntersection[1], p, sphereOrientation) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
-	vec2 longLat0 = mod(getLongLat(sphereIntersections.minor.xyz, sphereData.xyz, deg2Rad(uSphereOrientation )) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
-	vec2 longLat1 = mod(getLongLat(sphereIntersections.major.xyz, sphereData.xyz, deg2Rad(uSphereOrientation)) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
+	vec2 longLat0 = mod(getLongLat(sphereIntersections.minor.xyz, sphereData.xyz, deg2Rad(uSphereOrientation - uCameraOrientation)) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
+	vec2 longLat1 = mod(getLongLat(sphereIntersections.major.xyz, sphereData.xyz, deg2Rad(uSphereOrientation - uCameraOrientation)) + vec2(PI*2.0, PI), vec2(PI*2.0, PI));
 
-	// float uNearPlane = 0.05 ;
+	float uNearPlane = 0.05 ;
+	/*
 	vec3 uNearPlaneVec = vec3(rectiliniearRay);
 	uNearPlaneVec = normalize(uNearPlaneVec)*0.05;
 	float uNearPlane = length(uNearPlaneVec);
 	// uNearPlane = rotateX(uNearPlane, deg2Rad(uCameraOrientation.y));
 	// uNearPlane = rotateY(uNearPlane, deg2Rad(uCameraOrientation.x));
+
+
+	vec3 nearPlaneRefVec = vec3(0.0, 0.0, -0.05);
+	nearPlaneRefVec = rotateX(nearPlaneRefVec, deg2Rad(uCameraOrientation.y));
+	nearPlaneRefVec = rotateY(nearPlaneRefVec, deg2Rad(uCameraOrientation.x));
+
+	float cos_theta_minor = dot(normalize(sphereIntersections.minor.xyz),nearPlaneRefVec);
+	float cos_theta_major = dot(normalize(sphereIntersections.major.xyz),nearPlaneRefVec);
+	float nearDist_minor = length(nearPlaneRefVec) / cos_theta_minor;
+	float nearDist_major = length(nearPlaneRefVec) / cos_theta_major;
+	*/
 	vec2 longLat = longLat0;
 
 	if (sphereIntersections.major.z < -uNearPlane || !sphereIntersections.isReal ) {

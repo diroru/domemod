@@ -787,7 +787,7 @@ function setupParams() {
     suffix: [""],
     value: [0.05],
     type: "float",
-    min: [0.01],
+    min: [-1.0],
     max: [1.0],
     step: [0.005]
   });
