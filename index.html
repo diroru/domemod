@@ -1,8 +1,9 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
   <head>
-    <title>Domeviewer</title>
+    <title>domeviewer beta</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no">
     <link rel="stylesheet" href="./css/domeviewer.css" type="text/css">
     <script src="./js/sylvester.js" type="text/javascript"></script>
     <script src="./js/glUtils.js" type="text/javascript"></script>
@@ -10,48 +11,7 @@
   </head>
 
   <body onload="start()">
-    <!--div id='controls'>
-      <form method="post" onchange="setPatternType(event)">
-          Patterns:
-          <input type="radio" name="pattern" value=0 checked/>A
-          <input type="radio" name="pattern" value=2 />A.1
-          <input type="radio" name="pattern" value=1 />B
-      </form>
-      <form method="post" onchange="setPixelSize(event)">
-        Pixel size:
-        <input type="radio" name="pixel_size" value=1 />1
-        <input type="radio" name="pixel_size" value=2 />2
-        <input type="radio" name="pixel_size" value=4 />4
-        <input type="radio" name="pixel_size" value=8 checked/>8
-        <input type="radio" name="pixel_size" value=12 />12
-        <input type="radio" name="pixel_size" value=16 />16
-        <input type="radio" name="pixel_size" value=32 />32
-        <input type="radio" name="pixel_size" value=64 />64
-      </form>
-      <form onchange="setZoom(event)">
-        Zoom:<input type="range" min="1.0" max="10.0" value="1.0"/>
-      </form>
-      <form onchange="setRotation(event)">
-        Rotation:<input type="range" min="0.0" max="90.0" value="0.0" step="5"/>
-      </form>
-    </div-->
     <div id="ui">
-      <!--span>horizontal fov: </span><input id="fov-input" type="number" width=4>
-      <input id="fov-slider" type="range" min="5" max="170" value="5" class="full-width">
-      <span>radius: </span><input id="dome-rad-input" type="text">
-      <input id="dome-rad-slider" type="range" min="1" max="100" value="1.0" class="full-width">
-      <span>pos x: </span><input id="dome-pos-x-input" type="text">
-      <input id="dome-pos-x-slider" type="range" min="-100" max="100" value="0" class="full-width">
-      <span>pos y: </span><input id="dome-pos-y-input" type="text">
-      <input id="dome-pos-y-slider" type="range" min="-100" max="100" value="0" class="full-width">
-      <span>pos z: </span><input id="dome-pos-z-input" type="text">
-      <input id="dome-pos-z-slider" type="range" min="-100" max="100" value="0" class="full-width">
-      <span>orientation x: </span><input id="dome-ort-x-input" type="text">
-      <input id="dome-ort-x-slider" type="range" min="-180" max="180" value="0" class="full-width">
-      <span>orientation y: </span><input id="dome-ort-y-input" type="text">
-      <input id="dome-ort-y-slider" type="range" min="-180" max="180" value="0" class="full-width">
-      <span>dome latitude: </span><input id="dome-latitude-input" type="text">
-      <input id="dome-latitude-slider" type="range" min="0" max="180" value="90" class="full-width"-->
       <h3>domeviewer beta</h3>
       <form>open media file:<br><br>
         <input type="file" id="the-video-file-field">
