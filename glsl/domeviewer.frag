@@ -1,6 +1,13 @@
 precision highp float;
 precision highp int;
 
+// #pragma glslify: import("consants.glsl")
+#pragma glslify: deg2Rad = require('./src/utils/deg2Rad.glsl')
+#pragma glslify: rad2Deg = require('./src/utils/rad2Deg.glsl')
+#pragma glslify: rotateX = require('./src/utils/rotateX.glsl')
+#pragma glslify: rotateY = require('./src/utils/rotateY.glsl')
+#pragma glslify: rotateZ = require('./src/utils/rotateZ.glsl')
+
 const float PI = 3.14159265359;
 
 //TODO: naming …
@@ -27,6 +34,7 @@ uniform float ofrMix;
 
 // const float PI = 3.1415926535897932384626433832;
 
+
 vec3 quadraticEquationSolution(float a, float b, float c) {
 	float d = b * b - 4.0 * a * c;
 	vec3 result0 = vec3(-1.0);
@@ -40,48 +48,6 @@ vec3 quadraticEquationSolution(float a, float b, float c) {
 	}
 
 	//return mix(result1,result0,step(d,0.0));
-}
-
-vec3 rotateX(vec3 v, float theta) {
-  float x = v.x;
-  float y = v.y * cos(theta) - v.z * sin(theta);
-  float z = v.y * sin(theta) + v.z * cos(theta);
-  return vec3(x,y,z);
-}
-
-vec3 rotateY(vec3 v, float theta) {
-  float y = v.y;
-  float x = v.x * cos(theta) - v.z * sin(theta);
-  float z = v.x * sin(theta) + v.z * cos(theta);
-  return vec3(x,y,z);
-}
-
-vec3 rotateZ(vec3 v, float theta) {
-  float z = v.z;
-  float y = v.y * cos(theta) - v.x * sin(theta);
-  float x = v.y * sin(theta) + v.x * cos(theta);
-  return vec3(x,y,z);
-}
-
-vec2 getBothFOV(float theuHorizontalFOV, float theAspectRatio) {
-	float vertFOV = atan(tan(theuHorizontalFOV * 0.5)/theAspectRatio) * 2.0;
-	return vec2(theuHorizontalFOV, vertFOV);
-}
-
-float deg2Rad(float d) {
-  return d * PI / 180.0;
-}
-
-vec2 deg2Rad(vec2 d) {
-  return vec2(deg2Rad(d.x), deg2Rad(d.y));
-}
-
-vec3 deg2Rad(vec3 d) {
-  return vec3(deg2Rad(d.x), deg2Rad(d.y), deg2Rad(d.z));
-}
-
-float rad2Deg(float r) {
-  return r * 180.0 / PI;
 }
 
 //this takes latitude and longitude coordinates (possibly of the [[0,TWO_PI],[0,PI]] range)
@@ -188,7 +154,7 @@ VectorPair getEyeSphereIntersection (vec3 eyeVec, vec3 offsetVec, vec4 sphereDat
 	//q = rotateX(q - d, cameraRotation.y) + d;
 	//q = rotateY(q - d, cameraRotation.x) + d;
 	vec3 q = eyeVec;
-	vec3 p = sphereData.xyz - offsetVec;
+	vec3 p = sphereData.xyz + offsetVec;
 	float r = sphereData.w;
 
 	float a = dot(q, q);
@@ -256,7 +222,6 @@ void main() {
 	vec3 transformedSpherePosition = vec3(0.0);
 
 	transformedSpherePosition = transformedSpherePosition + uSpherePosition - uCameraPosition;
-
 
 	transformedSpherePosition = rotateX(transformedSpherePosition, deg2Rad(uCameraOrientation.y));
 	transformedSpherePosition = rotateY(transformedSpherePosition, deg2Rad(uCameraOrientation.x));

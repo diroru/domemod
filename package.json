@@ -1,0 +1,38 @@
+{
+  "name": "domeviewer",
+  "version": "0.1.0",
+  "description": "An interactive dome projection visualisation tool.",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build-js": "browserify ./js/domeviewer.js -o ./build/bundle.js",
+    "build": "npm run build-js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "tbd"
+  },
+  "keywords": [
+    "dome",
+    "projection",
+    "immersive",
+    "media",
+    "tool",
+    "3d",
+    "webgl",
+    "visualisation"
+  ],
+  "author": "Dimitar Ruszev",
+  "license": "ISC",
+  "devDependencies": {
+    "browserify": "^13.0.0",
+    "glsl-random": "0.0.5",
+    "glslify": "^5.0.2",
+    "glslify-import": "^3.0.0"
+  },
+  "browserify": {
+    "transform": [
+      "glslify"
+    ]
+  }
+}
