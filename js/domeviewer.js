@@ -1,4 +1,5 @@
 var glslify = require('glslify');
+var fs = require('browserify-fs');
 
 var canvas;
 var gl;
@@ -97,24 +98,38 @@ function start() {
       initImage(theFile);
   };
   */
+
+  var defaultPath = '../assets/images/Equirectangular_projection_SW.jpg';
+  // defaultPath = '/Users/diroru/Development/projects/js/domeviewer/assets/images/Equirectangular_projection_SW.jpg';
+  // defaultPath = __dirname + '/Equirectangular_projection_SW.jpg';
+  var path ='./assets/';
+  /*
+  fs.exists(path, function(path, exists) {
+    console.log(path, 'exists', exists);
+  }.bind(null, path));
+  */
+  /*
+  fs.readdir('..', (err, files) => {
+    if (err) console.error(err);
+    console.log('inside readdir');
+    files.forEach((file) => {
+      console.log(file);
+    });
+  });
+  */
+  /*
+  fs.readFile(defaultPath, 'utf8', function(defaultPath, err, data) {
+    console.log(new File([data], defaultPath));
+    initImage(new File([data], defaultPath));
+  }.bind(null, defaultPath));
+  */
+  loadDefaultImage('./assets/images/Equirectangular_projection_SW.jpg');
 }
 
 //see:
 //http://webglfundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
 //http://stackoverflow.com/questions/11819768/webgl-gl-viewport-change
 //http://webglfundamentals.org/webgl/lessons/webgl-anti-patterns.html
-
-function loadDefaultImage(path) {
-  var xmlhttp = new XMLHttpRequest();
-  xmlhttp.onreadystatechange = function(){
-  if(xmlhttp.status == 200 && xmlhttp.readyState == 4){
-    var data = xmlhttp.responseText;
-    initImage(new File([data], path));
-  }
-  };
-  xmlhttp.open("GET",path,true);
-  xmlhttp.send();
-}
 
 function fitCanvas() {
   var width = gl.canvas.clientWidth;
@@ -637,7 +652,8 @@ function humanFileSize(bytes, si) {
 }
 
 function initImage(file){
-   currentURL = URL.createObjectURL(file);
+  console.log("file from inside init image", file);
+     currentURL = URL.createObjectURL(file);
    //TODO: check and stop existing media!
    //TODO: on cancel?
    srcTexInfo.shouldUpdate = false;
@@ -906,7 +922,7 @@ function setupParams() {
     name: "uSphereOrientation",
     label: ["dome orientation x: ", "dome orientation y: "],
     suffix: ["-X", "-Y"],
-    value: [0, 0],
+    value: [0, 90],
     type: "float",
     min: [-180, -180],
     max: [180, 180]
@@ -920,6 +936,17 @@ function setupParams() {
     min: [0],
     max: [180]
   });
+  /*
+  params.push({
+    name: "uSpherePosition",
+    label: ["dome position x: ", "dome position y: ", "dome position z: "],
+    suffix: ["-X", "-Y", "-Z"],
+    value: [0, 0, 0],
+    type: "float",
+    min: [-100, -100, -100],
+    max: [100, 100, 100]
+  });
+  */
   /*
   params.push({
     name: "uNearPlane",

@@ -8,7 +8,7 @@ precision highp int;
 #pragma glslify: rotateY = require('./src/utils/rotateY.glsl')
 #pragma glslify: rotateZ = require('./src/utils/rotateZ.glsl')
 #pragma glslify: quadraticEquationSolution = require('./src/utils/quadraticEquationSolution.glsl')
-#pragma glslify: getRectiliniearRay = require('./src/utils/getRectiliniearRay.glsl')
+#pragma glslify: getrectilinearRay = require('./src/utils/getrectilinearRay.glsl')
 #pragma glslify: getFisheyeRay = require('./src/utils/getFisheyeRay.glsl')
 #pragma glslify: getOrthogonalRay = require('./src/utils/getOrthogonalRay.glsl')
 #pragma glslify: getGrid = require('./src/utils/getGrid.glsl')
@@ -24,7 +24,7 @@ uniform float uHorizontalFOV; //horizontal
 uniform vec2 uSize;
 uniform sampler2D uSrcTex;
 
-uniform vec3 uSpherePosition;
+// uniform vec3 uSpherePosition;
 uniform vec2 uSphereOrientation;
 uniform float uSphereRadius;
 uniform float uSphereLatitude;
@@ -130,10 +130,13 @@ void main() {
 
 	vec3 transformedSpherePosition = vec3(0.0);
 
-	transformedSpherePosition = transformedSpherePosition + uSpherePosition - uCameraPosition;
+	transformedSpherePosition = transformedSpherePosition - uCameraPosition;
 
-	transformedSpherePosition = rotateX(transformedSpherePosition, deg2Rad(uCameraOrientation.y));
-	transformedSpherePosition = rotateY(transformedSpherePosition, deg2Rad(uCameraOrientation.x));
+	transformedSpherePosition = rotateX(transformedSpherePosition, deg2Rad(-uCameraOrientation.y));
+	transformedSpherePosition = rotateY(transformedSpherePosition, deg2Rad(-uCameraOrientation.x));
+
+	//
+	// transformedSpherePosition = transformedSpherePosition + uSpherePosition;
 
 	// transformedSpherePosition = transformedSpherePosition - vec3(0.0, 0.0, 10.0);
 
@@ -142,12 +145,10 @@ void main() {
 
 	vec4 sphereData = vec4(transformedSpherePosition, uSphereRadius);
 
-	vec3 rectiliniearRay = getRectiliniearRay(normCoord, deg2Rad(uHorizontalFOV));
+	vec3 rectilinearRay = getrectilinearRay(normCoord, deg2Rad(uHorizontalFOV));
 
-	// rectiliniearRay = rotateX(rectiliniearRay, deg2Rad(uCameraOrientation.y));
-	// rectiliniearRay = rotateY(rectiliniearRay, deg2Rad(uCameraOrientation.x));
-
-	vec3 rectiliniearOffset = vec3(0.0);
+	// rectilinearRay = rotateX(rectilinearRay, deg2Rad(uCameraOrientation.y));
+	// rectilinearRay = rotateY(rectilinearRay, deg2Rad(uCameraOrientation.x));
 
 	/*
 	vec3 fisheyeRay = normalize(getFisheyeRay(normCoord, fieldOfView, deg2Rad(uCameraOrientation)));
@@ -159,11 +160,13 @@ void main() {
 	//w is sphere radius
 
 	/*
-	vec3 mixedRay = normalize(mix(mix(fisheyeRay, rectiliniearRay , frMix), orthographicRay, ofrMix));
+	vec3 mixedRay = normalize(mix(mix(fisheyeRay, rectilinearRay , frMix), orthographicRay, ofrMix));
 	vec3 mixedOffset = mix(mix(fisheyeOffset, rectiliniearOffset, frMix), orthographicOffset, ofrMix);
 	VectorPair sphereIntersections = getEyeSphereIntersection(mixedRay, mixedOffset, sphereData);
 	*/
-	VectorPair sphereIntersections = getEyeSphereIntersection(rectiliniearRay, rectiliniearOffset, sphereData);
+
+	vec3 rectiliniearOffset = vec3(0.0);
+	VectorPair sphereIntersections = getEyeSphereIntersection(rectilinearRay, rectiliniearOffset, sphereData);
 
 	//for performance use this:
 	/*
@@ -187,6 +190,7 @@ void main() {
 	vec2 longLat = longLat0;
 
 	//TODO: comments
+
 	if (sphereIntersections.major.z < -uNearPlane || !sphereIntersections.isReal ) {
 		gl_FragColor = vec4(0.2, 0.2, 0.2, 1.0);
 	} else {
@@ -229,5 +233,4 @@ void main() {
 		  // gl_FragColor = texture2D(uSrcTex, src_coord / uSize);
 		}
 	}
-	// gl_FragColor = vec4(1.0,0.0,0.0,1.0);
 }
