@@ -7,6 +7,13 @@ precision highp int;
 #pragma glslify: rotateX = require('./src/utils/rotateX.glsl')
 #pragma glslify: rotateY = require('./src/utils/rotateY.glsl')
 #pragma glslify: rotateZ = require('./src/utils/rotateZ.glsl')
+#pragma glslify: quadraticEquationSolution = require('./src/utils/quadraticEquationSolution.glsl')
+#pragma glslify: getRectiliniearRay = require('./src/utils/getRectiliniearRay.glsl')
+#pragma glslify: getRectiliniearRay = require('./src/utils/getFisheyeRay.glsl')
+#pragma glslify: getOrthogonalRay = require('./src/utils/getOrthogonalRay.glsl')
+#pragma glslify: getGrid = require('./src/utils/getGrid.glsl')
+
+
 
 const float PI = 3.14159265359;
 
@@ -34,78 +41,15 @@ uniform float ofrMix;
 
 // const float PI = 3.1415926535897932384626433832;
 
-
-vec3 quadraticEquationSolution(float a, float b, float c) {
-	float d = b * b - 4.0 * a * c;
-	vec3 result0 = vec3(-1.0);
-	vec3 result1 = vec3((-b - sqrt(d)) / (a * 2.0), (-b + sqrt(d)) / (a * 2.0), 1.0);
-
-	//we will check the third element of the vector, to see if we have a valid solution
-	if (d < 0.0) {
-		return result0;
-	} else {
-		return result1;
-	}
-
-	//return mix(result1,result0,step(d,0.0));
-}
-
 //this takes latitude and longitude coordinates (possibly of the [[0,TWO_PI],[0,PI]] range)
 //and maps them to [[0,1],[0,1]]
 vec2 mapFromLatLongToPanoramicTexel(vec2 theLongLat) {
 	return vec2(mod(theLongLat.x / PI * 0.5 + 1.0, 1.0), mod(theLongLat.y / PI + 1.0, 1.0));
 }
 
-//we presume that the screen coordinates are normalized to [-1,1], where [0,0] is the middle
-//the result is normalized
-vec3 getFisheyeRay(vec2 screenCoordNorm, vec2 fieldOfView, vec2 rotation) {
-
-	float theta = atan(screenCoordNorm.y, -screenCoordNorm.x);
-	float rho = length(screenCoordNorm * 0.5) * fieldOfView.x;
-
-	//fisheye
-	float x = cos(theta) * sin(rho);
-	float y = cos(rho);
-	float z = sin(theta) * sin(rho);
-
-	vec3 result = vec3(x,y,z);
-	//TODO: check if this goes to the rectilinear camera
-	result = rotateX(result, PI * 0.5);
-	result = rotateX(result, rotation.y);
-	result = rotateY(result, rotation.x);
-
-	return result;
-}
-
-//we presume that the screen coordinates are normalized to [-1,1], where [0,0] is the middle
-//the result is normalized
-//TODO: calculate focalLength on CPU and make it uniform
-vec3 getRectiliniearRay(vec2 screenCoordNorm, float horizontalFOV) {
-	float focalLength = 0.5 / (tan(horizontalFOV * 0.5));
-	//rectilinear
-	//TODO: offset
-	float x = -screenCoordNorm.x * 0.5;
-	float y = -screenCoordNorm.y * 0.5;
-	float z = focalLength;
-
-	return normalize(vec3(x,y,z));
-}
-
-
 vec3 getOrthogonalScreenOffset(vec2 screenCoordNorm) {
 	vec3 d = vec3(screenCoordNorm * 0.5, 0.0); //distance to origin, needed for the orthographic camera
 	return normalize(d);
-}
-
-
-vec3 getOrthogonalRay(vec2 screenCoordNorm, vec2 rotation) {
-
-	vec3 result = vec3(0.0, 0.0, 1.0);
-	//result = rotateX(result-offset, rotation.y) + offset;
-	//result = rotateY(result-offset, rotation.x) + offset;
-
-	return normalize(result - vec3(screenCoordNorm, 0.0));
-	//return normalize(result - getOrthogonalScreenOffset(screenCoordNorm));
 }
 
 vec3 updatespherePositionitionOrtho(vec3 spherePosition, vec3 orthoOffset) {
@@ -177,41 +121,6 @@ VectorPair getEyeSphereIntersection (vec3 eyeVec, vec3 offsetVec, vec4 sphereDat
 	return VectorPair(result0, result1, isReal);
 }
 
-//TODO: gratGlobalOffset maybe?
-//
-vec3 getLatitudeGrid(vec2 longLat, float gratOffset, float gratWidth, vec3 gratColour) {
-	float aa = 0.1;
-	float gr = mod(rad2Deg(longLat.y) + gratWidth * 0.5, gratOffset) - gratWidth * 0.5;
-	// return mix(gratColour, vec3(0.0), smoothstep(gratWidth*0.5 - aa, gratWidth*0.5 + aa, abs(gr)));
-	return mix(gratColour, vec3(0.0), step(gratWidth, abs(gr)));
-}
-
-vec3 getLongtitudeGrid(vec2 longLat, float gratOffset, float gratWidth, vec3 gratColour) {
-	float aa = 0.1;
-	float alpha_threshold = asin(gratOffset / gratWidth );
-	float longDeg = rad2Deg(longLat.x);
-	float latDeg = rad2Deg(longLat.y);
-	if (longLat.y < alpha_threshold || longLat.y > (PI * 0.5 - alpha_threshold)) {
-		return gratColour;
-	} else {
-		float go = gratWidth / sin(longLat.y);
-		float gr = mod(longDeg + go * 0.5, gratOffset) - go * 0.5;
-		// return mix(gratColour, vec3(0.0), smoothstep(go*0.5 - aa, go*0.5 + aa, abs(gr)));
-		return mix(gratColour, vec3(0.0), step(go, abs(gr)));
-	}
-}
-
-
-vec3 getGrid(vec2 longLat, vec3 colour) {
-	vec3 longGrid_0 = getLongtitudeGrid(longLat, 45.0, 0.6, colour);
-	vec3 longGrid_1 = getLongtitudeGrid(longLat, 15.0, 0.2, colour);
-	vec3 latGrid_0 = getLatitudeGrid(longLat, 45.0, 0.6, colour);
-	vec3 latGrid_1 = getLatitudeGrid(longLat, 15.0, 0.2, colour);
-	vec3 grid_rgb = longGrid_0 + longGrid_1 + latGrid_0 + latGrid_1;
-	//TODO eg. vec3(0.0) as const
-	return clamp(grid_rgb, vec3(0.0), vec3(1.0));
-}
-
 void main() {
 	vec2 aspectRatio = uSize / uSize.xx;
 	//normalizing and mapping to the [-1.0,1.0] range
@@ -277,6 +186,7 @@ void main() {
 	float uNearPlane = 0.05 ;
 	vec2 longLat = longLat0;
 
+	//TODO: comments
 	if (sphereIntersections.major.z < -uNearPlane || !sphereIntersections.isReal ) {
 		gl_FragColor = vec4(0.2, 0.2, 0.2, 1.0);
 	} else {

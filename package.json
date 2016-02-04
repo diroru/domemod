@@ -28,7 +28,8 @@
     "browserify": "^13.0.0",
     "glsl-random": "0.0.5",
     "glslify": "^5.0.2",
-    "glslify-import": "^3.0.0"
+    "glslify-import": "^3.0.0",
+    "watchify": "^3.7.0"
   },
   "browserify": {
     "transform": [
