@@ -1,7 +1,7 @@
 precision highp float;
 precision highp int;
 
-// #pragma glslify: import("consants.glsl")
+// #pragma glslify: import("./src/utils/constants.glsl")
 #pragma glslify: deg2Rad = require('./src/utils/deg2Rad.glsl')
 #pragma glslify: rad2Deg = require('./src/utils/rad2Deg.glsl')
 #pragma glslify: rotateX = require('./src/utils/rotateX.glsl')
@@ -9,7 +9,7 @@ precision highp int;
 #pragma glslify: rotateZ = require('./src/utils/rotateZ.glsl')
 #pragma glslify: quadraticEquationSolution = require('./src/utils/quadraticEquationSolution.glsl')
 #pragma glslify: getRectiliniearRay = require('./src/utils/getRectiliniearRay.glsl')
-#pragma glslify: getRectiliniearRay = require('./src/utils/getFisheyeRay.glsl')
+#pragma glslify: getFisheyeRay = require('./src/utils/getFisheyeRay.glsl')
 #pragma glslify: getOrthogonalRay = require('./src/utils/getOrthogonalRay.glsl')
 #pragma glslify: getGrid = require('./src/utils/getGrid.glsl')
 

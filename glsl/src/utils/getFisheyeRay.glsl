@@ -1,3 +1,9 @@
+// #pragma glslify: import("../constants.glsl")
+#pragma glslify: rotateX = require('./rotateX.glsl')
+#pragma glslify: rotateY = require('./rotateY.glsl')
+
+const float PI = 3.14159265359;
+
 //we presume that the screen coordinates are normalized to [-1,1], where [0,0] is the middle
 //the result is normalized
 vec3 getFisheyeRay(vec2 screenCoordNorm, vec2 fieldOfView, vec2 rotation) {

@@ -5,7 +5,7 @@
   "main": "index.html",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build-js": "browserify ./js/domeviewer.js -o ./build/bundle.js",
+    "build-js": "watchify ./js/domeviewer.js -o ./build/bundle.js -v",
     "build": "npm run build-js"
   },
   "repository": {
@@ -32,6 +32,11 @@
     "watchify": "^3.7.0"
   },
   "browserify": {
+    "transform": [
+      "glslify"
+    ]
+  },
+  "watchify": {
     "transform": [
       "glslify"
     ]

@@ -1,3 +1,7 @@
+#pragma glslify: rad2Deg = require('./rad2Deg.glsl')
+
+const float PI = 3.14159265359;
+
 //TODO: gratGlobalOffset maybe?
 //
 vec3 getLatitudeGrid(vec2 longLat, float gratOffset, float gratWidth, vec3 gratColour) {
