@@ -1,7 +1,7 @@
 precision highp float;
 precision highp int;
 
-// #pragma glslify: import("./src/utils/constants.glsl")
+#pragma glslify: import("./src/constants.glsl")
 #pragma glslify: deg2Rad = require('./src/utils/deg2Rad.glsl')
 #pragma glslify: rad2Deg = require('./src/utils/rad2Deg.glsl')
 #pragma glslify: rotateX = require('./src/utils/rotateX.glsl')
@@ -13,8 +13,9 @@ precision highp int;
 #pragma glslify: getGrid = require('./src/utils/getGrid.glsl')
 #pragma glslify: IntersectionPair = require('./src/utils/IntersectionPair.glsl')
 #pragma glslify: getEyeSphereIntersection = require('./src/utils/getEyeSphereIntersection.glsl')
+#pragma glslify: getLongLat = require('./src/utils/getLongLat.glsl')
 
-const float PI = 3.14159265359;
+// const float PI = 3.14159265359;
 
 //TODO: naming …
 uniform float uHorizontalFOV; //horizontal
@@ -42,8 +43,8 @@ uniform float ofrMix;
 
 //this takes latitude and longitude coordinates (possibly of the [[0,TWO_PI],[0,PI]] range)
 //and maps them to [[0,1],[0,1]]
-vec2 mapFromLatLongToPanoramicTexel(vec2 theLongLat) {
-	return vec2(mod(theLongLat.x / PI * 0.5 + 1.0, 1.0), mod(theLongLat.y / PI + 1.0, 1.0));
+vec2 mapFromLatLongToEquirectangularTexel(vec2 theLongLat) {
+	return vec2(mod(theLongLat.x / PI * 0.5 + 1.0, 1.0), mod((PI - theLongLat.y) / PI + 1.0, 1.0));
 }
 
 vec3 getOrthogonalScreenOffset(vec2 screenCoordNorm) {
@@ -64,24 +65,6 @@ vec3 mapFromLatLongToAzimuthalTexel(vec2 theLongLat, float verticalFOV) {
 	float s = 0.5 + cos(theLongLat.x) * radius;
 	float t = 0.5 + sin(theLongLat.x) * radius;
 	return vec3(s,t,radius);
-}
-
-vec2 getLongLat(vec3 intersection, vec3 spherePosition, vec2 rotation) {
-	vec3 sphereVec = normalize(intersection - spherePosition);
-	vec3 v = sphereVec;
-	v = rotateX(v, rotation.y + PI*0.5);
-	v = rotateY(v, rotation.x);
-	float lambda = atan(v.z, v.x);
-	float mu = PI * 0.5 - atan(v.y, length(vec2(v.x,v.z)));
-	return vec2(lambda, mu);
-}
-
-bool isInsideInterval(vec2 source, vec2 intervalLow, vec2 intervalHigh) {
-	return all(greaterThanEqual(source,intervalLow)) && all(lessThanEqual(source,intervalHigh));
-}
-
-bool isInsideInterval(vec2 source) {
-	return isInsideInterval(source, vec2(0.0), vec2(1.0));
 }
 
 void main() {
@@ -159,9 +142,10 @@ void main() {
 	//b) the minor (farther) intersection point is in front of the near plane
 	//then we fill with the background colour
 	if (!sphereIntersections.isReal || sphereIntersections.minor.z > uNearPlane) {
-		gl_FragColor = vec4(0.2, 0.2, 0.2, 1.0);
+		gl_FragColor = GREY;
 	} else {
 		vec2 longLatVisible;
+		bool fromOutside;
 		//2. CASE: "(peeking) inside the dome"
 		//if
 		//a) the closer point is in front of the near plane or
@@ -174,7 +158,8 @@ void main() {
 			}
 			//2.2. the farther point is on the dome
 			//equirectangular projection
-			longLatVisible = vec2(longLatMinor);
+			longLatVisible = longLatMinor;
+			fromOutside = false;
 		} else {
 			//3. CASE: looking at the dome from the outside
 			//3.1. CASE: since we already made sure we are not interested in the farther point,
@@ -183,18 +168,22 @@ void main() {
 				discard;
 			}
 			//3.2. the closer point is on the dome
-			longLatVisible = vec2(longLatMajor);
+			longLatVisible = longLatMajor;
+			fromOutside = true;
 		}
 		//let's sample!
 		//equirectangular projection
 		if (uSrcTexProjType == 0) {
-			gl_FragColor = texture2D(uSrcTex, mapFromLatLongToPanoramicTexel(longLatVisible));
+			gl_FragColor = texture2D(uSrcTex, mapFromLatLongToEquirectangularTexel(longLatVisible));
 		//azimuthal projection, latitude 90°
 		} else if (uSrcTexProjType == 1) {
 			gl_FragColor = texture2D(uSrcTex, mapFromLatLongToAzimuthalTexel(longLatVisible, PI * 0.5).st);
 		//azimuthal projection, latitude 180°
 		} else {
 			gl_FragColor = texture2D(uSrcTex, mapFromLatLongToAzimuthalTexel(longLatVisible, PI).st);
+		}
+		if (fromOutside) {
+			gl_FragColor = mix(gl_FragColor, GREY, 0.6);
 		}
 		if (uShowGrid) {
 			vec3 gridColour = getGrid(longLatVisible, vec3(1.0, 1.0, 0.0));

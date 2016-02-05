@@ -38,14 +38,17 @@
   },
   "browserify": {
     "transform": [
-      "brfs",
       "glslify"
     ]
   },
   "watchify": {
     "transform": [
-      "brfs",
       "glslify"
+    ]
+  },
+  "glslify": {
+    "transform": [
+      "glslify-import"
     ]
   }
 }
