@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build-js": "watchify ./js/domeviewer.js -o ./build/bundle.js -v",
-    "build": "npm run build-js"
+    "build": "npm run build-js",
+    "dev": "npm run build & npm run livereload",
+    "livereload": "live-reload --port 9091 ./index.html"
   },
   "repository": {
     "type": "git",
@@ -31,6 +33,7 @@
     "glsl-random": "0.0.5",
     "glslify": "^5.0.2",
     "glslify-import": "^3.0.0",
+    "live-reload": "^1.1.0",
     "watchify": "^3.7.0"
   },
   "browserify": {

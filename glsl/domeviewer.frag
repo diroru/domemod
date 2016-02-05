@@ -7,13 +7,12 @@ precision highp int;
 #pragma glslify: rotateX = require('./src/utils/rotateX.glsl')
 #pragma glslify: rotateY = require('./src/utils/rotateY.glsl')
 #pragma glslify: rotateZ = require('./src/utils/rotateZ.glsl')
-#pragma glslify: quadraticEquationSolution = require('./src/utils/quadraticEquationSolution.glsl')
 #pragma glslify: getrectilinearRay = require('./src/utils/getrectilinearRay.glsl')
 #pragma glslify: getFisheyeRay = require('./src/utils/getFisheyeRay.glsl')
 #pragma glslify: getOrthogonalRay = require('./src/utils/getOrthogonalRay.glsl')
 #pragma glslify: getGrid = require('./src/utils/getGrid.glsl')
-
-
+#pragma glslify: IntersectionPair = require('./src/utils/IntersectionPair.glsl')
+#pragma glslify: getEyeSphereIntersection = require('./src/utils/getEyeSphereIntersection.glsl')
 
 const float PI = 3.14159265359;
 
@@ -83,48 +82,6 @@ bool isInsideInterval(vec2 source, vec2 intervalLow, vec2 intervalHigh) {
 
 bool isInsideInterval(vec2 source) {
 	return isInsideInterval(source, vec2(0.0), vec2(1.0));
-}
-
-//we will calculate a ray-sphere intersection using a quadratic equation
-//quadratic equation have at most two solutions, which can either both be real or complex numbers
-struct IntersectionPair {
-	vec4 minor;
-	vec4 major;
-	bool isReal;
-};
-
-//sphereData contains position (xyz) and radius (w)
-IntersectionPair getEyeSphereIntersection (vec3 eyeVec, vec3 offsetVec, vec4 sphereData) {
-
-	//with orthographic rotation we ignore camera rotation, translation should be used instead
-	//q = rotateX(q - d, cameraRotation.y) + d;
-	//q = rotateY(q - d, cameraRotation.x) + d;
-	vec3 q = eyeVec;
-	vec3 p = sphereData.xyz + offsetVec;
-	float r = sphereData.w;
-
-	float a = dot(q, q);
-	float b = - dot(q, p) * 2.0;
-	float c = dot(p, p) -  r * r;
-
-	vec3 kappa = quadraticEquationSolution(a, b, c);
-	// vec4 color0 = vec4(1.0,1.0,0.0,0.5);
-	// vec4 color1 = vec4(kappa.x * eyeVec, 1.0);
-
-	//the minor result has a potentially lower Z-coord, so it should be further away from us
-	//the major result has a potentially higher Z-coord, so it should be closer to us
-	//BUT! since the eye vector has already a negative z component,
-	//we have to switch the quadratic equation roots (so minor gets the bigger root and vice versa)
-	vec4 resultMinor = vec4(offsetVec + eyeVec * kappa.y, 1.0);
-	vec4 resultMajor = vec4(offsetVec + eyeVec * kappa.x, 1.0);
-
-	bool isReal = true;
-
-	if (kappa.z < 0.0) {
-		isReal = false;
-	}
-
-	return IntersectionPair(resultMinor, resultMajor, isReal);
 }
 
 void main() {
@@ -204,6 +161,7 @@ void main() {
 	if (!sphereIntersections.isReal || sphereIntersections.minor.z > uNearPlane) {
 		gl_FragColor = vec4(0.2, 0.2, 0.2, 1.0);
 	} else {
+		vec2 longLatVisible;
 		//2. CASE: "(peeking) inside the dome"
 		//if
 		//a) the closer point is in front of the near plane or
@@ -214,21 +172,9 @@ void main() {
 			if (longLatMinor.y >= latLimit) {
 				discard;
 			}
-			//2.2. the farther point is on the dome, let's sample!
+			//2.2. the farther point is on the dome
 			//equirectangular projection
-			if (uSrcTexProjType == 0) {
-				gl_FragColor = texture2D(uSrcTex, mapFromLatLongToPanoramicTexel(longLatMinor));
-			//azimuthal projection, latitude 90°
-			} else if (uSrcTexProjType == 1) {
-				gl_FragColor = texture2D(uSrcTex, mapFromLatLongToAzimuthalTexel(longLatMinor, PI * 0.5).st);
-			//azimuthal projection, latitude 180°
-			} else {
-				gl_FragColor = texture2D(uSrcTex, mapFromLatLongToAzimuthalTexel(longLatMinor, PI).st);
-			}
-			if (uShowGrid) {
-				vec3 gridColour = getGrid(longLatMinor, vec3(1.0, 1.0, 0.0));
-				gl_FragColor = gl_FragColor + vec4(gridColour, 1.0) * 0.2;
-			}
+			longLatVisible = vec2(longLatMinor);
 		} else {
 			//3. CASE: looking at the dome from the outside
 			//3.1. CASE: since we already made sure we are not interested in the farther point,
@@ -236,22 +182,23 @@ void main() {
 			if (longLatMajor.y >= latLimit) {
 				discard;
 			}
-			//3.2. the closer point is on the dome, let's sample!
-			//equirectangular projection
-			if (uSrcTexProjType == 0) {
-				gl_FragColor = texture2D(uSrcTex, mapFromLatLongToPanoramicTexel(longLatMajor));
-			//azimuthal projection, latitude 90°
-			} else if (uSrcTexProjType == 1) {
-				gl_FragColor = texture2D(uSrcTex, mapFromLatLongToAzimuthalTexel(longLatMajor, PI * 0.5).st);
-			//azimuthal projection, latitude 180°
-			} else {
-				gl_FragColor = texture2D(uSrcTex, mapFromLatLongToAzimuthalTexel(longLatMajor, PI).st);
-			}
-			 gl_FragColor = mix(gl_FragColor, vec4(0.2,0.2,0.2,1.0), 0.6);
-			 if (uShowGrid) {
-				 vec3 gridColour = getGrid(longLatMajor, vec3(1.0, 1.0, 0.0));
-			 	 gl_FragColor = gl_FragColor + vec4(gridColour, 1.0) * 0.35;
-		 	 }
+			//3.2. the closer point is on the dome
+			longLatVisible = vec2(longLatMajor);
+		}
+		//let's sample!
+		//equirectangular projection
+		if (uSrcTexProjType == 0) {
+			gl_FragColor = texture2D(uSrcTex, mapFromLatLongToPanoramicTexel(longLatVisible));
+		//azimuthal projection, latitude 90°
+		} else if (uSrcTexProjType == 1) {
+			gl_FragColor = texture2D(uSrcTex, mapFromLatLongToAzimuthalTexel(longLatVisible, PI * 0.5).st);
+		//azimuthal projection, latitude 180°
+		} else {
+			gl_FragColor = texture2D(uSrcTex, mapFromLatLongToAzimuthalTexel(longLatVisible, PI).st);
+		}
+		if (uShowGrid) {
+			vec3 gridColour = getGrid(longLatVisible, vec3(1.0, 1.0, 0.0));
+			gl_FragColor = gl_FragColor + vec4(gridColour, 1.0) * 0.2;
 		}
 	}
 }

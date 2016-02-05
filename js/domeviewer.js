@@ -889,7 +889,7 @@ function setupParams() {
     name: "uSphereOrientation",
     label: ["dome orientation x: ", "dome orientation y: "],
     suffix: ["-X", "-Y"],
-    value: [0, 90],
+    value: [0, 0],
     type: "float",
     min: [-180, -180],
     max: [180, 180]
