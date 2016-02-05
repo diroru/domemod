@@ -1,5 +1,5 @@
 {
-  "name": "domeviewer",
+  "name": "domemod",
   "version": "0.1.0",
   "description": "An interactive dome projection visualisation tool.",
   "main": "index.html",
