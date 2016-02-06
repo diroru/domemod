@@ -4,3 +4,4 @@
 /_working
 npm-debug.log
 deploy.sh
+build/
