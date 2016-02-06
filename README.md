@@ -55,6 +55,6 @@ The app …
 
 ###History
 
-The original domemod started as a [processing](http://processing.org/) application while i was studying at the [Potsdam University of Sciences](http://www.fh-potsdam.de/studieren/design/) and it was much less usable _(but in a way cooler)_. Also, it actually **failed** at mapping the pixels correctly! Shame on me.
+The [original domemod](https://incom.org/projekt/1372) started as a [processing](http://processing.org/) application while i was studying at the [Potsdam University of Sciences](http://www.fh-potsdam.de/studieren/design/) and it was much less usable _(but in a way cooler)_. Also, it actually **failed** at mapping the pixels correctly! Shame on me.
 
 [Christopher Warnow](https://github.com/chwarnow) joined the project to make a simplified [cinder](https://libcinder.org/) version to play videos. That was 2010. Since then, it has been in hybernation. And now it rises from the ashes! However, if you are interested in the old app, check it out at its archive [project page](https://incom.org/projekt/1372).
