@@ -218,7 +218,7 @@ function initTexture(img, url, npot) {
   img = new Image();
   img.onload = function() { handleTextureLoaded(tex, img, npot); }
   img.src = url;
-  console.log("init", img);
+  // console.log("init", img);
   return tex;
 }
 
@@ -235,7 +235,7 @@ function handleTextureLoaded(texture, image, npot) {
     gl.generateMipmap(gl.TEXTURE_2D);
   }
   gl.bindTexture(gl.TEXTURE_2D, null);
-  console.log("loaded", image);
+  // console.log("loaded", image);
 }
 
 //
@@ -348,7 +348,8 @@ function initShaders() {
   var shaderText = [];
   shaderText.push(glslify(__dirname + '/../glsl/domeviewer.vert'));
   shaderText.push(glslify(__dirname + '/../glsl/domeviewer.frag'));
-  console.log(shaderText[1]);
+  // console.log("vertex shader", shaderText[1]);
+  // console.log("fragment shader", shaderText[1]);
       var vertexShader = gl.createShader(gl.VERTEX_SHADER);
       gl.shaderSource(vertexShader, shaderText[0]);
       gl.compileShader(vertexShader);
@@ -465,6 +466,11 @@ function handlePointerMoved(event) {
   event.preventDefault();
   var dx = event.movementX;
   var dy = event.movementY;
+  if (Math.abs(dx) > Math.abs(dy)) {
+    dy = 0.0;
+  } else {
+    dx = 0.0;
+  }
   if (event.altKey) {
     var newValueY = getParam('uHorizontalFOV', 0) + dy * zoomFactor;
     triggerEvent('uHorizontalFOV-input', newValueY);
@@ -563,7 +569,7 @@ function setupFileHandling() {
     document.getElementById("the-video-file-field").addEventListener('change', function(event) {
   		//grab the first image in the fileList
   		//in this example we are only loading one file.
-      console.log("file field event", event, event.files);
+      // console.log("file field event", event, event.files);
       var file = this.files[0];
       if (file !== undefined) {
         console.log("file size:", file.size);
@@ -690,7 +696,7 @@ function loadImageCallback() {
   srcTexInfo.type = 'image';
   srcTexInfo.shouldUpdate = true;
   intervalID = setInterval(drawScene, 120);
-  console.log("load image callback triggered.");
+  // console.log("load image callback triggered.");
 }
 
 //
@@ -716,7 +722,7 @@ function startVideo() {
 //
 function videoDone() {
   clearInterval(intervalID);
-  console.log("video done called");
+  // console.log("video done called");
 }
 
 function initGUI() {
