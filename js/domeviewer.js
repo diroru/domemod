@@ -1,13 +1,12 @@
 var glslify = require('glslify');
+var cleanupOnExit = require('./utils/cleanupOnExit.js');
 
 var canvas;
 var gl;
 var intervalID;
 
-var cubeVerticesBuffer;
-var cubeVerticesTextureCoordBuffer;
-var cubeVerticesIndexBuffer;
-var cubeVerticesIndexBuffer;
+var quadVerticesBuffer;
+var quadVerticesIndexBuffer;
 
 /* textures */
 var sourceTexture;
@@ -15,7 +14,6 @@ var sourceTexture;
 var shaderProgram;
 //attribute locations
 var vertexPositionAttribute;
-var textureCoordAttribute;
 //uniform locations
 var uSizeLoc,
     uSrcTexLoc,
@@ -90,6 +88,16 @@ function start() {
     initInput();
     // activateVideoListeners(videoElement);
     initImage('./assets/images/World_Equirectangular.jpg');
+
+    //cleanupOnExit takes five params:
+    //1: the context
+    //2: an array of used textures
+    //3: an array of used buffers
+    //4: an array of used renderbuffers
+    //5: an array of used framebuffers
+
+    //window is global so we don't pass it
+    cleanupOnExit(gl, [sourceTexture], [quadVerticesBuffer, quadVerticesIndexBuffer], [], []);
   }
 }
 
@@ -145,12 +153,12 @@ function initBuffers() {
 
   // Create a buffer for the cube's vertices.
 
-  cubeVerticesBuffer = gl.createBuffer();
+  quadVerticesBuffer = gl.createBuffer();
 
-  // Select the cubeVerticesBuffer as the one to apply vertex
+  // Select the quadVerticesBuffer as the one to apply vertex
   // operations to from here out.
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, cubeVerticesBuffer);
+  gl.bindBuffer(gl.ARRAY_BUFFER, quadVerticesBuffer);
 
   // Now create an array of vertices for the cube.
 
@@ -168,25 +176,11 @@ function initBuffers() {
 
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
 
-  cubeVerticesTextureCoordBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, cubeVerticesTextureCoordBuffer);
-
-  var textureCoordinates = [
-    // Front
-    0.0,  0.0,
-    1.0,  0.0,
-    1.0,  1.0,
-    0.0,  1.0
-  ];
-
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates),
-                gl.STATIC_DRAW);
-
   // Build the element array buffer; this specifies the indices
   // into the vertex array for each face's vertices.
 
-  cubeVerticesIndexBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVerticesIndexBuffer);
+  quadVerticesIndexBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, quadVerticesIndexBuffer);
 
   // This array defines each face as two triangles, using the
   // indices into the vertex array to specify each triangle's
@@ -275,13 +269,8 @@ function drawScene() {
 
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, cubeVerticesBuffer);
+  gl.bindBuffer(gl.ARRAY_BUFFER, quadVerticesBuffer);
   gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
-
-  // Set the texture coordinates attribute for the vertices.
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, cubeVerticesTextureCoordBuffer);
-  gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
 
   //setting uniforms
   params.forEach(function(param) {
@@ -330,7 +319,7 @@ function drawScene() {
 
   // Draw the quad.
 
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVerticesIndexBuffer);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, quadVerticesIndexBuffer);
   gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
 
   gl.bindTexture(gl.TEXTURE_2D, null);
@@ -382,9 +371,6 @@ function initShaders() {
 
       vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
       gl.enableVertexAttribArray(vertexPositionAttribute);
-
-      textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
-      gl.enableVertexAttribArray(textureCoordAttribute);
 
       //getting uniform locations
       uSrcTexLoc = gl.getUniformLocation(shaderProgram, "uSrcTex");
