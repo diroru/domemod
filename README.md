@@ -42,7 +42,7 @@ To make the app run locally, you need to clone / fork the repository, have [node
 As already mentioned, this is a learning project. It uses webgl. I have some prior experience with opengl; for webgl my favourite resources is among others [MDN](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API) (also the source of some code snippets). Other than that, while I haven't fully embraced it yet, i really like the philosophy of [node](https://nodejs.org/) and its webgl counterpart, [stack.gl](http://stack.gl/). The core of the app is a custom fragment shader. It does some minimal raytracing, but only to analitically find intersections with a known sphere (the dome). This limits somewhat the extensibility of the project (e.g. you can't just add some 3d models to it) but ensures a good mix of rendering performance and visual quality. _(theoretically :)_ Some billboarding should be possible (and also planned) though.
 
 
-###Known bugs
+###(Un)Known bugs
 
 The app …
 
@@ -50,7 +50,7 @@ The app …
 
 - … probably won't work on a handheld device, support is coming up.
 
-- … might have some graphical memory leak issues. Sorry. Reports are welcome. The fix is coming up.
+- … ~~might have some graphical memory leak issues. The fix is coming up.~~ Reports of performance issues are welcome.
 
 
 ###History
