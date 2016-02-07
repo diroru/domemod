@@ -1,15 +1,17 @@
-domemod
+domemod (beta)
 ==============
 
 [domemod:](http://dimitarruszev.com/apps/beta/domemod) a webgl-based webtool for visualising fulldome media. This is only the source repository.
 
 ###Motivation
 
-There is a myriad of websites that offer preview of panoramic media. On (are rather past) the brink of VR becoming the next hot medium, you can watch your _gopro_ footage in _youtube_ and even on _facebook._ So why another panorama viewer? The motivation is twofold: 1. Fill out the space (niche) left by the others, provide a tool, a shortcut which enables hassle-free visualisation of fulldome media. 2. This is a personal learning project. More on that in the history section.
+There is a myriad of websites that offer preview of panoramic media. On (are rather past) the brink of VR becoming the next hot medium, you can watch your _gopro_ footage in _youtube_ and on _facebook._ So why another panorama viewer? The motivation is twofold: 1. Fill out the space (niche) left by the others, provide a tool, a shortcut which enables hassle-free visualisation of fulldome media. 2. This is a personal learning project. More on that in the history section.
 
 ###Usage
 
-Most of the effort has flown so far into the functionality of the software, that's why the UI is rather spartan.
+Domemod allows you to view your files locally in your browser, without the need to upload them to a server or install desktop software. _(Please note that a modern browser is needed for this.)_ In the future, handheld support will be also added.
+
+Most of the effort has flown so far into the functionality of the software, that's why (for now) the UI is rather spartan.
 
 **GUI**
 
@@ -35,7 +37,7 @@ you may choose between <code>equirectangular</code> _(corresponds to general pan
 
 ###Development and technical information
 
-If you are interesting in contributing in any way, open an issue, or look at the [domemod trelloboard](https://trello.com/b/LbJNnihb/domemod) or simply fork the project. Drop me a line if you want to be added to the board editors.
+If you are interested in contributing in any way, open an issue, or look at the [domemod trelloboard](https://trello.com/b/LbJNnihb/domemod) or simply fork the project. Drop me a line if you want to be added to the board editors.
 
 To make the app run locally, you need to clone / fork the repository, have [node](https://nodejs.org/en/) installed and run <code>npm install</code> from the project root. <code>npm run build</code> will watch / complile the source. You can use your favourite apache server (e.g. [MAMP](https://www.mamp.info/)) to serve the app.
 

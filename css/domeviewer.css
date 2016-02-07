@@ -41,3 +41,13 @@ html, body {
 	/*background-color: rgba(1.0, 1.0, 1.0, 0.5);*/
 	background-color: #444;
 }
+
+a:visited {
+	color: #fc0;
+}
+
+hr {
+	border-width: 1px;
+	border-color: #666;
+	border-style: solid;
+}

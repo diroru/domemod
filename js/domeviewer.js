@@ -732,6 +732,7 @@ function initGUI() {
 
   uiContainer.appendChild(projTypeLabel);
   uiContainer.appendChild(projTypeDropdown);
+  uiContainer.appendChild(document.createElement('hr'));
   params.forEach(function(param) {
     for (var i  = 0; i < param['value'].length; i++) {
       var labelElement = document.createElement('span');
@@ -854,7 +855,7 @@ function setupParams() {
     name: "uCameraPosition",
     label: ["camera position x: ", "camera position y: ", "camera position z: "],
     suffix: ["-X", "-Y", "-Z"],
-    value: [0, 0, 70],
+    value: [0, -10, 80],
     type: "float",
     min: [-100, -100, -100],
     max: [100, 100, 100]
@@ -872,7 +873,7 @@ function setupParams() {
     name: "uSphereRadius",
     label: ["dome radius: "],
     suffix: [""],
-    value: [50],
+    value: [60],
     type: "float",
     min: [1],
     max: [100]
