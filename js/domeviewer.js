@@ -88,6 +88,7 @@ function start() {
     initInput();
     // activateVideoListeners(videoElement);
     initImage('./assets/images/World_Equirectangular.jpg');
+    // initImage('./assets/images/La_Valette_du_Var_-_11_2000px.jpg');
 
     //cleanupOnExit takes five params:
     //1: the context
@@ -98,6 +99,7 @@ function start() {
 
     //window is global so we don't pass it
     cleanupOnExit(gl, [sourceTexture], [quadVerticesBuffer, quadVerticesIndexBuffer], [], []);
+    drawScene();
   }
 }
 
@@ -131,7 +133,7 @@ function initWebGL() {
   gl = null;
 
   try {
-    gl = canvas.getContext("experimental-webgl");
+    gl = canvas.getContext("experimental-webgl", {antialias: false, alpha: false, depth: false, stencil: false, preserveDrawingBuffer: false});
   }
   catch(e) {
   }
@@ -238,6 +240,7 @@ function handleTextureLoaded(texture, image, npot) {
 // Update the texture to contain the latest frame from
 // our video.
 //
+//TODO: make this modular
 function updateTexture() {
   gl.bindTexture(gl.TEXTURE_2D, sourceTexture);
   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
@@ -253,6 +256,9 @@ function updateTexture() {
   // gl.generateMipmap(gl.TEXTURE_2D);
   gl.bindTexture(gl.TEXTURE_2D, null);
   // console.log("media element", mediaElement);
+  if (srcTexInfo.type === 'image') {
+    srcTexInfo.shouldUpdate = false;
+  }
 }
 
 //
@@ -261,8 +267,16 @@ function updateTexture() {
 // Draw the scene.
 //
 function drawScene() {
+  window.requestAnimationFrame(drawScene, canvas);
   if (srcTexInfo.shouldUpdate) {
     updateTexture();
+    // Specify the texture to map onto the faces.
+
+    var unitNo = 0;
+    gl.activeTexture(gl.TEXTURE0 + unitNo);
+    gl.bindTexture(gl.TEXTURE_2D, sourceTexture);
+    gl.uniform1i(uSrcTexLoc, unitNo);
+    unitNo++;
   }
   fitCanvas();
   // Clear the canvas before we start drawing on it.
@@ -309,20 +323,13 @@ function drawScene() {
 
   gl.uniform1i(uShowGridLoc, showGrid);
   gl.uniform1i(uSrcTexProjTypeLoc, srcTexInfo.projection_type);
-  // Specify the texture to map onto the faces.
-
-  var unitNo = 0;
-  gl.activeTexture(gl.TEXTURE0 + unitNo);
-  gl.bindTexture(gl.TEXTURE_2D, sourceTexture);
-  gl.uniform1i(uSrcTexLoc, unitNo);
-  unitNo++;
 
   // Draw the quad.
 
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, quadVerticesIndexBuffer);
   gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
 
-  gl.bindTexture(gl.TEXTURE_2D, null);
+  // gl.bindTexture(gl.TEXTURE_2D, null);
 }
 
 //
@@ -666,7 +673,7 @@ function initVideo(file){
 
 function clearImage() {
   try {
-    clearInterval(intervalID);
+    // clearInterval(intervalID);
     var imageElement = mediaContainer.getElementsByTagName("img")[0];
     imageElement.setAttribute("src", "");
     //videoElement.removeAttribute("src");
@@ -681,7 +688,7 @@ function clearImage() {
 function loadImageCallback() {
   srcTexInfo.type = 'image';
   srcTexInfo.shouldUpdate = true;
-  intervalID = setInterval(drawScene, 120);
+  // intervalID = setInterval(drawScene, 30);
   // console.log("load image callback triggered.");
 }
 
@@ -693,8 +700,8 @@ function loadImageCallback() {
 //
 function startVideo() {
   this.play();
-  this.muted = true;
-  intervalID = setInterval(drawScene, 30);
+  this.muted = false;
+  // intervalID = setInterval(drawScene, 30);
   srcTexInfo.type = 'video';
   srcTexInfo.shouldUpdate = true;
   //console.log("start video", doUpdateTexture);
@@ -707,7 +714,7 @@ function startVideo() {
 // the animation.
 //
 function videoDone() {
-  clearInterval(intervalID);
+  // clearInterval(intervalID);
   // console.log("video done called");
 }
 
