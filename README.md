@@ -5,7 +5,7 @@ domemod (beta)
 
 ###Motivation
 
-There is a myriad of websites that offer preview of panoramic media. On (are rather past) the brink of VR becoming the next hot medium, you can watch your _gopro_ footage in _youtube_ and on _facebook._ So why another panorama viewer? The motivation is twofold: 1. Fill out the space (niche) left by the others, provide a tool, a shortcut which enables hassle-free visualisation of fulldome media. 2. This is a personal learning project. More on that in the history section.
+There is a myriad of websites that offer preview of panoramic media. On (are rather past) the brink of VR becoming the next hot medium, you can watch your _gopro_ footage in _youtube_ and on _facebook_ and your panoramic images on _flickr._ So why another »panorama viewer«? The motivation is twofold: 1. Fill out the space (niche) left by the others, provide a tool, a shortcut which enables hassle-free visualisation of fulldome media. 2. This is a personal learning project. More on that in the history section.
 
 ###Usage
 
@@ -20,7 +20,7 @@ opens a single image or video file. The video is looped and muted (the latter is
 
 
 * **Projection Type:**
-you may choose between <code>equirectangular</code> _(corresponds to general panoramic footage)_, <code>azimuthal 90°</code> _(or fulldome domemaster)_ and <code>azimuthal 180°</code> <small >This should become modular and extensible by using lookup-textures._
+you may choose between <code>equirectangular</code> _(corresponds to general panoramic footage)_, <code>azimuthal 90°</code> _(or fulldome domemaster)_ and <code>azimuthal 180°</code> _This should become modular and extensible by using lookup-textures._
 
 * **camera position x, y and z:** used to change viewer position. _Equivalent_ to <code>shift + mouse drag</code> on the canvas _(affects only x and z)._
 
@@ -42,7 +42,6 @@ If you are interested in contributing in any way, open an issue, or look at the 
 To make the app run locally, you need to clone / fork the repository, have [node](https://nodejs.org/en/) installed and run <code>npm install</code> from the project root. <code>npm run build</code> will watch / complile the source. You can use your favourite apache server (e.g. [MAMP](https://www.mamp.info/)) to serve the app.
 
 As already mentioned, this is a learning project. It uses webgl. I have some prior experience with opengl; for webgl my favourite resources is among others [MDN](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API) (also the source of some code snippets). Other than that, while I haven't fully embraced it yet, i really like the philosophy of [node](https://nodejs.org/) and its webgl counterpart, [stack.gl](http://stack.gl/). The core of the app is a custom fragment shader. It does some minimal raytracing, but only to analitically find intersections with a known sphere (the dome). This limits somewhat the extensibility of the project (e.g. you can't just add some 3d models to it) but ensures a good mix of rendering performance and visual quality. _(theoretically :)_ Some billboarding should be possible (and also planned) though.
-
 
 ###(Un)Known bugs
 
