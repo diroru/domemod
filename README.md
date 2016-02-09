@@ -19,6 +19,9 @@ Most of the effort has flown so far into the functionality of the software, that
 opens a single image or video file. The video is looped and muted (the latter is a bug).
 
 
+* **Enter youtube video id:**
+Unfortunately, this is a hack, not using/supported by the official API. It has only been tested on chrome. Also, you need to **manually disable CORS** in the browser. (With [this](https://chrome.google.com/webstore/detail/cors-toggle/omcncfnpmcabckcddookmnajignpffnh?hl=en) plugin, for example.) Finally, the video that you get this way will have a _very low_ resolution. (In terms of planar video it would be ok, but we are stretching the pixels across space.)
+
 * **Projection Type:**
 you may choose between <code>equirectangular</code> _(corresponds to general panoramic footage)_, <code>azimuthal 90°</code> _(or fulldome domemaster)_ and <code>azimuthal 180°</code> _This should become modular and extensible by using lookup-textures._
 

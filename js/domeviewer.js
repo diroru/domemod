@@ -1,5 +1,7 @@
 var glslify = require('glslify');
 var cleanupOnExit = require('./utils/cleanupOnExit.js');
+var YoutubeVideo = require('./utils/YoutubeVideo.js');
+// var plyr = require('plyr');
 
 var canvas;
 var gl;
@@ -88,7 +90,28 @@ function start() {
     initInput();
     // activateVideoListeners(videoElement);
     initImage('./assets/images/World_Equirectangular.jpg');
+    // YoutubeVideo('GmYAnIqqHwc', initYoutubeVideo);
+    // YoutubeVideo('8lsB-P8nGSM', initYoutubeVideo);
+    // YoutubeVideo('2OzlksZBTiA', initYoutubeVideo);
+    // YoutubeVideo('kUbGQJfoRuw', initYoutubeVideo);
+    // YoutubeVideo('My4FZ65ac88', initYoutubeVideo);
+    // YoutubeVideo('Y_2OIJ1m0VA', initYoutubeVideo);
+
     // initImage('./assets/images/La_Valette_du_Var_-_11_2000px.jpg');
+    // var options = {debug: true};
+    // plyr.setup(document.querySelector('.js-plyr'), options);
+    /*
+    var options = {};
+    var player = plyr.setup(document.querySelector('.js-plyr'), options)[0];
+    player.source({
+      type:       'video',
+      title:      'Example title',
+      sources: [{
+        src:    'bTqVqk7FSmY',
+        type:   'youtube'
+      }]
+    });
+    */
 
     //cleanupOnExit takes five params:
     //1: the context
@@ -212,6 +235,7 @@ function initTextures() {
 function initTexture(img, url, npot) {
   var tex = gl.createTexture();
   img = new Image();
+  img.crossOrigin = 'anonymous';
   img.onload = function() { handleTextureLoaded(tex, img, npot); }
   img.src = url;
   // console.log("init", img);
@@ -580,6 +604,13 @@ function setupFileHandling() {
         console.log("probably cancelled.");
       }
   	}, false);
+    //console.log(document);
+    document.getElementById("the-youtube-video-submit").addEventListener('click', function(event) {
+      event.preventDefault();
+      var youtubeVideoID = document.getElementById("the-youtube-video-field").value;
+      console.log("submit ytv", youtubeVideoID);
+      YoutubeVideo(youtubeVideoID, initYoutubeVideo);
+    }, false);
 
   } else {
     alert('The File APIs are not fully supported in this browser.');
@@ -633,20 +664,27 @@ function initImage(file){
 
    var imageElement = document.createElement("img");
 
-   imageElement.addEventListener('load', loadImageCallback, true);
 
    imageElement.setAttribute('src', currentURL);
    mediaContainer.appendChild(imageElement);
    mediaElement = imageElement;
+   imageElement.addEventListener('load', loadImageCallback, true);
    //DEBUGGING
 
    srcTexInfo.type = 'image';
    srcTexInfo.shouldUpdate = true;
+
    console.log("init image called", mediaElement);
 }
 
+//TODO: donate to crossorigin.me
+function initYoutubeVideo(theYoutubeVideo) {
+  initVideo("https://crossorigin.me/" + theYoutubeVideo.getSource("video/mp4", "medium").url); //TODO: See if this gets better
+}
+
 function initVideo(file){
-   currentURL = URL.createObjectURL(file);
+   currentURL = (file instanceof File) ? URL.createObjectURL(file) : file;
+   console.log("video file", file);
    //TODO: check and stop existing media!
    //TODO: on cancel?
    srcTexInfo.shouldUpdate = false;
@@ -660,15 +698,17 @@ function initVideo(file){
 
    //of course using a template library like handlebars.js is a better solution than just inserting a string
    var videoElement = document.createElement("video");
-   videoElement.addEventListener("canplaythrough", startVideo.bind(videoElement), true);
-   videoElement.addEventListener("ended", videoDone, true);
+   videoElement.setAttribute('crossorigin', 'anonymous');
    videoElement.setAttribute('src', currentURL);
    videoElement.setAttribute('autoplay', '');
    // videoElement.setAttribute('muted', '');
    videoElement.setAttribute('loop', '');
-   videoElement.setAttribute('type', file.type);
+   if (file.type !== undefined) videoElement.setAttribute('type', file.type);
    mediaContainer.appendChild(videoElement);
+   videoElement.addEventListener("canplaythrough", startVideo.bind(videoElement), true);
+   videoElement.addEventListener("ended", videoDone, true);
    mediaElement = videoElement;
+  //  mediaElement.crossOrigin = 'Anonymous';
 }
 
 function clearImage() {

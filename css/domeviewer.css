@@ -42,7 +42,7 @@ html, body {
 	background-color: #444;
 }
 
-a:visited {
+strong, a:visited {
 	color: #fc0;
 }
 
