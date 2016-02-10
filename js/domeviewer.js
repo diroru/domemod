@@ -679,7 +679,7 @@ function initImage(file){
 
 //TODO: donate to crossorigin.me
 function initYoutubeVideo(theYoutubeVideo) {
-  initVideo("https://crossorigin.me/" + theYoutubeVideo.getSource("video/mp4", "hd720").url); //TODO: See if this gets better
+  initVideo("https://crossorigin.me/" + theYoutubeVideo.getSource("video/mp4", "medium").url); //TODO: See if this gets better
 }
 
 function initVideo(file){
