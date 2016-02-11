@@ -89,6 +89,8 @@ function start() {
     initTextures();
     initInput();
     // activateVideoListeners(videoElement);
+    //initVideo("http://d8d913s460fub.cloudfront.net/videoserver/cat-test-video-320x240.mp4");
+    // initVideo("https://r4---sn-4g57knes.googlevideo.com/videoplayback?sver=3&sparams=dur%2Cid%2Cinitcwndbps%2Cip%2Cipbits%2Citag%2Clmt%2Cmime%2Cmm%2Cmn%2Cms%2Cmv%2Cnh%2Cpl%2Cratebypass%2Crequiressl%2Csource%2Cupn%2Cexpire&signature=549A80A46F9A2A89FA473C9F04CE2952A613B908.396A89348042045B94A93E213F1165D5BA5730C1&mn=sn-4g57knes&itag=18&upn=C--i5hijomY&id=o-AJBp6aQfu7DyPOGR68LG6-1abipWtnvyro_n79vUNySk&mm=31&expire=1455143514&ms=au&ipbits=0&mv=m&pl=15&mt=1455121722&ip=88.66.46.88&ratebypass=yes&dur=217.060&lmt=1445500828308105&nh=IgpwcjA0LmZyYTE2KgkxMjcuMC4wLjE&source=youtube&mime=video%2Fmp4&key=yt6&requiressl=yes&initcwndbps=1202500&fexp=3300133%2C3300164%2C3312381%2C9406989%2C9416126%2C9417058%2C9420452%2C9422596%2C9423660%2C9423662&signature=undefined");
     initImage('./assets/images/World_Equirectangular.jpg');
     // YoutubeVideo('GmYAnIqqHwc', initYoutubeVideo);
     // YoutubeVideo('8lsB-P8nGSM', initYoutubeVideo);
@@ -608,7 +610,7 @@ function setupFileHandling() {
     document.getElementById("the-youtube-video-submit").addEventListener('click', function(event) {
       event.preventDefault();
       var youtubeVideoID = document.getElementById("the-youtube-video-field").value;
-      console.log("submit ytv", youtubeVideoID);
+      console.log("submit youtube video", youtubeVideoID);
       YoutubeVideo(youtubeVideoID, initYoutubeVideo);
     }, false);
 
@@ -679,7 +681,8 @@ function initImage(file){
 
 //TODO: donate to crossorigin.me
 function initYoutubeVideo(theYoutubeVideo) {
-  initVideo("https://crossorigin.me/" + theYoutubeVideo.getSource("video/mp4", "medium").url); //TODO: See if this gets better
+  initVideo("https://crossorigin.me/" + theYoutubeVideo.getSource("video/mp4", "hd720").url); //TODO: See if this gets better
+  // initVideo(theYoutubeVideo.getSource("video/mp4", "hd720").url); //TODO: See if this gets better
 }
 
 function initVideo(file){
@@ -699,15 +702,17 @@ function initVideo(file){
    //of course using a template library like handlebars.js is a better solution than just inserting a string
    var videoElement = document.createElement("video");
    videoElement.setAttribute('crossorigin', 'anonymous');
-   videoElement.setAttribute('src', currentURL);
    videoElement.setAttribute('autoplay', '');
    // videoElement.setAttribute('muted', '');
    videoElement.setAttribute('loop', '');
    if (file.type !== undefined) videoElement.setAttribute('type', file.type);
    mediaContainer.appendChild(videoElement);
+   videoElement.crossOrigin = 'Anonymous';
+   mediaElement = videoElement;
    videoElement.addEventListener("canplaythrough", startVideo.bind(videoElement), true);
    videoElement.addEventListener("ended", videoDone, true);
-   mediaElement = videoElement;
+   videoElement.setAttribute('src', currentURL);
+   videoElement.load();
   //  mediaElement.crossOrigin = 'Anonymous';
 }
 
@@ -744,7 +749,7 @@ function startVideo() {
   // intervalID = setInterval(drawScene, 30);
   srcTexInfo.type = 'video';
   srcTexInfo.shouldUpdate = true;
-  //console.log("start video", doUpdateTexture);
+  console.log("start video", this);
 }
 
 //
