@@ -20,10 +20,10 @@ opens a single image or video file. The video is looped and muted (the latter is
 
 
 * **Enter youtube video id:**
-Unfortunately, this is a hack, not using/supported by the official API. It has only been tested on chrome. Also, you need to **manually disable CORS** in the browser. (With [this](https://chrome.google.com/webstore/detail/cors-toggle/omcncfnpmcabckcddookmnajignpffnh?hl=en) plugin, for example.) Finally, the video that you get this way will have a _very low_ resolution. (In terms of planar video it would be ok, but we are stretching the pixels across space.)
+Unfortunately, this is a hack, not using/supported by the official API. It has only been tested on chrome. Also, you need to **manually disable CORS** in the browser. (With [this](https://chrome.google.com/webstore/detail/cors-toggle/omcncfnpmcabckcddookmnajignpffnh?hl=en) plugin, for example. If the plugin is on, media on normal websites won't load, so you'll have to turn it back off again.) Different privacy plugins / ad blockers may also thwart the loading of youtube videos. Finally, the video that you get this way will have, ~~a very low~~ if available 720p resolution. (In terms of planar video it would be ok, but we are stretching the pixels across space.)
 
 * **Projection Type:**
-you may choose between <code>equirectangular</code> _(corresponds to general panoramic footage)_, <code>azimuthal 90°</code> _(or fulldome domemaster)_ and <code>azimuthal 180°</code> _This should become modular and extensible by using lookup-textures._
+you may choose between <code>equirectangular</code> _(corresponds to general panoramic footage)_, <code>azimuthal 90°</code> _(or fulldome domemaster)_ and <code>azimuthal 180°</code> _~~This should become modular and extensible by using lookup-textures.~~ Lookup textures won't work unless they have at least 16bit depth (otherwise you have less-than-a-degree precision which is comparable to a pixelation shader), even then, some artifacts appear. In the meantime, raise an issue for another projection type, so that i may implement it._ 
 
 * **camera position x, y and z:** used to change viewer position. _Equivalent_ to <code>shift + mouse drag</code> on the canvas _(affects only x and z)._
 
@@ -36,7 +36,7 @@ you may choose between <code>equirectangular</code> _(corresponds to general pan
 
 * **dome latitude:** shows the height of the dome canvas. 180° is, for example, a full sphere. _Suggestions for a better label, anybody?_
 
-* **show grid:** Overlays a procedurally generated graticule. _Spot the bug!_
+* **show grid:** Overlays a procedurally generated graticule. _On some systems this feature doesn't work, only a transparent yellow surface is visible._
 
 ###Development and technical information
 
