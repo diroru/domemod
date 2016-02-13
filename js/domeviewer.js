@@ -371,7 +371,9 @@ function initShaders() {
   shaderText.push(glslify(__dirname + '/../glsl/domeviewer.vert'));
   shaderText.push(glslify(__dirname + '/../glsl/domeviewer.frag'));
   // console.log("vertex shader", shaderText[1]);
-  // console.log("fragment shader", shaderText[1]);
+  console.log("DEBUG fragment shader ///");
+  console.log(shaderText[1]);
+  console.log("/////////////////////////");
       var vertexShader = gl.createShader(gl.VERTEX_SHADER);
       gl.shaderSource(vertexShader, shaderText[0]);
       gl.compileShader(vertexShader);

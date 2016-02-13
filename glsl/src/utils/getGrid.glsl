@@ -3,11 +3,6 @@
 
 const float PI = 3.14159265359;
 
-float myMod(float f, float m) {
-		float a = floor(f / m);
-		return f - f/a;
-}
-
 //TODO: gratGlobalOffset maybe?
 //
 vec3 getLatitudeGrid(vec2 longLat, float gratOffset, float gratWidth, vec3 gratColour) {
@@ -19,20 +14,12 @@ vec3 getLatitudeGrid(vec2 longLat, float gratOffset, float gratWidth, vec3 gratC
 
 vec3 getLongtitudeGrid(vec2 longLat, float gratOffset, float gratWidth, vec3 gratColour) {
 	float aa = 0.1;
-	//float alpha_threshold = asin(deg2Rad(gratOffset) / deg2Rad(gratWidth));
-	//loat alpha_threshold = PI * 0.008;
 	float longDeg = rad2Deg(longLat.x);
 	float latDeg = rad2Deg(longLat.y);
-	/*
-	if (longLat.y < alpha_threshold || longLat.y > (PI - alpha_threshold)) {
-		return gratColour;
-	} else {
-	*/
 		float go = gratWidth / sin(longLat.y);
 		float gr = mod(longDeg + go , gratOffset) - go;
 		// return mix(gratColour, vec3(0.0), smoothstep(go*0.5 - aa, go*0.5 + aa, abs(gr)));
 		return mix(gratColour, vec3(0.0), step(go, abs(gr)));
-	//}
 }
 
 vec3 getLongtitudeGridAlt(vec2 longLat, float gratOffset, float gratWidth, vec3 gratColour) {

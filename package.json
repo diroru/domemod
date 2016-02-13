@@ -6,9 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build-js": "watchify ./js/domeviewer.js -o ./build/bundle.js -v",
-    "build": "npm run build-js",
-    "dev": "npm run build & npm run livereload",
-    "livereload": "live-reload --port 9091 ./index.html"
+    "build": "npm run build-js"
   },
   "repository": {
     "type": "git",
@@ -27,14 +25,13 @@
   "author": "Dimitar Ruszev",
   "license": "ISC",
   "devDependencies": {
-    "brfs": "^1.4.3",
     "browserify": "^13.0.0",
-    "browserify-fs": "^1.0.0",
+    "watchify": "^3.7.0"
+  },
+  "dependencies": {
     "glsl-random": "0.0.5",
     "glslify": "^5.0.2",
-    "glslify-import": "^3.0.0",
-    "live-reload": "^1.1.0",
-    "watchify": "^3.7.0"
+    "glslify-import": "^3.0.0"
   },
   "browserify": {
     "transform": [
@@ -50,8 +47,5 @@
     "transform": [
       "glslify-import"
     ]
-  },
-  "dependencies": {
-    "plyr": "^1.5.10"
   }
 }
