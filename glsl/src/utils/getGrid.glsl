@@ -16,13 +16,13 @@ vec3 getLongtitudeGrid(vec2 longLat, float gratOffset, float gratWidth, vec3 gra
 	float aa = 0.1;
 	float longDeg = rad2Deg(longLat.x);
 	float latDeg = rad2Deg(longLat.y);
-		float go = gratWidth / sin(longLat.y);
-		float gr = mod(longDeg + go , gratOffset) - go;
-		// return mix(gratColour, vec3(0.0), smoothstep(go*0.5 - aa, go*0.5 + aa, abs(gr)));
-		return mix(gratColour, vec3(0.0), step(go, abs(gr)));
+	float go = gratWidth / sin(longLat.y);
+	float gr = mod(longDeg + go , gratOffset) - go;
+	// return mix(gratColour, vec3(0.0), smoothstep(go*0.5 - aa, go*0.5 + aa, abs(gr)));
+	return mix(gratColour, vec3(0.0), step(go, abs(gr)));
 }
 
-vec3 getLongtitudeGridAlt(vec2 longLat, float gratOffset, float gratWidth, vec3 gratColour) {
+vec3 getLongtitudeGrigDebug(vec2 longLat, float gratOffset, float gratWidth, vec3 gratColour) {
 	float aa = 0.1;
 	float gr = mod(rad2Deg(longLat.x) + gratWidth * 0.5, gratOffset) - gratWidth * 0.5;
 	// return mix(gratColour, vec3(0.0), smoothstep(gratWidth*0.5 - aa, gratWidth*0.5 + aa, abs(gr)));
