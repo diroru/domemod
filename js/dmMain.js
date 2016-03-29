@@ -1,11 +1,12 @@
+var glslify = require('glslify');
 var glManager = require('./dmGLManager.js');
-const mediaContainer = require('./dmMediaContainer.js');
-const UIManager = require('./dmUIManager.js');
-const inputManager = require('./dmInputManager.js');
+var mediaContainer = require('./dmMediaContainer.js');
+var UIManager = require('./dmUIManager.js');
+var inputManager = require('./dmInputManager.js');
 
 window.onload = start;
 
-const settings = {
+var settings = {
   glCanvasId : "dm-gl-canvas",
   vsPath: '/../glsl/domeviewer.vert',
   fsPath: '/../glsl/domeviewer.frag',
@@ -16,6 +17,7 @@ const settings = {
 }
 
 function start() {
+  console.log(glslify);
   console.log("start called");
   // fitCanvas();
   // window.addEventListener('resize', fitCanvas, false);

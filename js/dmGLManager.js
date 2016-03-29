@@ -14,6 +14,7 @@ var showGrid;
 
 //TODO: bring back some comments!
 function init(settings) {
+  console.log(glslify);
   canvas = document.getElementById(settings.glCanvasId);
   gl = null;
   try {
