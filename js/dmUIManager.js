@@ -1,6 +1,7 @@
 var mediaContainer = require('./dmMediaContainer.js');
 var paramManager = require('./dmParamManager.js');
 
+//TODO:
 var panTiltOn = true;
 var dollyOn = false;
 var zoomOn = false;

@@ -8,8 +8,8 @@ window.onload = start;
 
 var settings = {
   glCanvasId : "dm-gl-canvas",
-  vsPath: '/../glsl/domeviewer.vert',
-  fsPath: '/../glsl/domeviewer.frag',
+  vsPath: '/../glsl/domemod.vert',
+  fsPath: '/../glsl/domemod.frag',
   mediaContainerId: "media-container",
   videoFileFieldId: "the-video-file-field",
   youtubeVideoSumbitId: "the-youtube-video-submit",
@@ -17,7 +17,6 @@ var settings = {
 }
 
 function start() {
-  console.log(glslify);
   console.log("start called");
   // fitCanvas();
   // window.addEventListener('resize', fitCanvas, false);
@@ -27,10 +26,10 @@ function start() {
 
   glManager.init(settings);
   if (glManager.hasInitialized()) {
-    mediaContainer.setTextureSource('./assets/images/World_Equirectangular.jpg');
     UIManager.init(settings);
     inputManager.init(settings);
     glManager.draw();
+    mediaContainer.setImageSource('./assets/images/World_Equirectangular.jpg');
   } else {
     alert("something has gone terribly wrong");
   }

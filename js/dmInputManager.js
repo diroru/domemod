@@ -1,5 +1,15 @@
 var paramManager = require('./dmParamManager.js');
 
+//TODO:
+var panTiltOn = true;
+var dollyOn = false;
+var zoomOn = false;
+var activePointerCount = 0;
+var mainPointerId = -1;
+var panTiltFactor = 0.1;
+var dollyFactor = 0.1;
+var zoomFactor = 0.1;
+
 function handlePointerMoved(event) {
   event.preventDefault();
   var dx = event.movementX;

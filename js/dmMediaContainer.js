@@ -65,7 +65,7 @@ function setImageSource(file) {
      clearImage();
    }
 
-   var imageElement = document.createElement("img");
+   imageElement = document.createElement("img");
 
    imageElement.setAttribute('src', currentURL);
    mediaContainerElement.appendChild(imageElement);
@@ -185,12 +185,25 @@ function getMediaElement() {
   }
 }
 
+function newTextureAvailable() {
+  return textureShouldUpdate;
+}
+
+function setTextureShouldUpdate(b) {
+  textureShouldUpdate = b;
+}
+
+function getMediaType() {
+  return mediaType;
+}
+
 module.exports = {
   init: init,
   setImageSource: setImageSource,
   setVideoSource: setVideoSource,
-  textureShouldUpdate: textureShouldUpdate,
-  mediaType: mediaType,
+  newTextureAvailable: newTextureAvailable,
+  getMediaType: getMediaType,
   projectionType: projectionType,
-  getMediaElement: getMediaElement
+  getMediaElement: getMediaElement,
+  setTextureShouldUpdate: setTextureShouldUpdate
 }

@@ -3,7 +3,7 @@ var paramManager = require('./dmParamManager.js');
 var mediaContainer = require('./dmMediaContainer.js');
 var glslify = require('glslify');
 
-var canvas = null, gl = null;
+var canvas = undefined, gl = undefined;
 
 var shaderProgram, vertexPositionAttribute, uSrcTexLoc, uSizeLoc, uShowGridLoc, uSrcTexProjTypeLoc;
 var quadVerticesBuffer, quadVerticesIndexBuffer;
@@ -14,7 +14,6 @@ var showGrid;
 
 //TODO: bring back some comments!
 function init(settings) {
-  console.log(glslify);
   canvas = document.getElementById(settings.glCanvasId);
   gl = null;
   try {
@@ -23,12 +22,14 @@ function init(settings) {
   catch(e) {
     console.error(e);
   }
+  console.log('canvas', canvas);
+  console.log('gl', gl);
   if (!gl) {
     alert("Unable to initialize WebGL. Your browser may not support it.");
   } else {
     fitCanvas();
     gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
-    initShaders(settings.vsPath, settings.fsPath);
+    initShaders();
     initBuffers();
     //init texture(s)
     sourceTexture = gl.createTexture();
@@ -47,12 +48,12 @@ function init(settings) {
 }
 
 function hasInitialized() {
-  return canvas === undefined && gl === undefined;
+  return (canvas !== undefined && gl !== undefined);
 }
 
 //TODO
 function draw() {
-  if (mediaContainer.textureShouldUpdate) {
+  if (mediaContainer.newTextureAvailable()) {
     updateTexture();
     // Specify the texture to map onto the faces.
 
@@ -61,7 +62,12 @@ function draw() {
     gl.bindTexture(gl.TEXTURE_2D, sourceTexture);
     gl.uniform1i(uSrcTexLoc, unitNo);
     unitNo++;
+
+    if (mediaContainer.getMediaType() === 'image') {
+      mediaContainer.setTextureShouldUpdate(false);
+    }
   }
+
   fitCanvas();
   // Clear the canvas before we start drawing on it.
 
@@ -123,6 +129,7 @@ function updateTexture() {
   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,
         gl.UNSIGNED_BYTE, mediaContainer.getMediaElement());
+  console.log("media element", mediaContainer.getMediaElement());
   /*for NPOT textures, see as well: https://www.khronos.org/webgl/wiki/WebGL_and_OpenGL_Differences*/
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -133,18 +140,15 @@ function updateTexture() {
   // gl.generateMipmap(gl.TEXTURE_2D);
   gl.bindTexture(gl.TEXTURE_2D, null);
   // console.log("media element", mediaElement);
-  if (mediaContainer.mediaType === 'image') {
-    mediaContainer.textureShouldUpdate = false;
-  }
 }
 
-function initShaders(vsPath, fsPath) {
+function initShaders() {
   /*
   loadFiles(['./glsl/domeviewer.vert', './glsl/domeviewer.frag'], function (shaderText) {
   */
   var shaderText = [];
-  shaderText.push(glslify(__dirname + vsPath));
-  shaderText.push(glslify(__dirname + fsPath));
+  shaderText.push(glslify(__dirname + '/../glsl/domemod.vert'));
+  shaderText.push(glslify(__dirname + '/../glsl/domemod.frag'));
   // console.log("vertex shader", shaderText[1]);
   // console.log("DEBUG fragment shader ///");
   // console.log(shaderText[1]);
@@ -197,6 +201,7 @@ function initShaders(vsPath, fsPath) {
     param["uloc"] = gl.getUniformLocation(shaderProgram, param["name"]);
   });
 }
+
 function initBuffers() {
   quadVerticesBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, quadVerticesBuffer);
@@ -237,5 +242,6 @@ function fitCanvas() {
 
 module.exports = {
   init : init,
-  hasInitialized: hasInitialized
+  hasInitialized: hasInitialized,
+  draw: draw
 }
