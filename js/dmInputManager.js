@@ -1,4 +1,4 @@
-const paramManager = require('./dmParamManager.js');
+var paramManager = require('./dmParamManager.js');
 
 function handlePointerMoved(event) {
   event.preventDefault();
@@ -85,6 +85,18 @@ function init(settings) {
     console.log("dolly ", dollyOn, " zoom ", zoomOn);
   });
   */
+}
+
+function triggerEvent(id, newValue) {
+  var elem = document.getElementById(id);
+  elem.value = newValue;
+  var event = new Event('input', {
+      target: elem,
+      type: 'Event',
+      bubbles: false,
+      cancelable: false
+  });
+  elem.dispatchEvent(event);
 }
 
 module.exports = {

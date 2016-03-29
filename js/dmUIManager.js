@@ -1,3 +1,6 @@
+var mediaContainer = require('./dmMediaContainer.js');
+var paramManager = require('./dmParamManager.js');
+
 var panTiltOn = true;
 var dollyOn = false;
 var zoomOn = false;
@@ -22,14 +25,14 @@ function init(settings) {
     i++;
   });
   projTypeDropdown.addEventListener('change', function(event) {
-    srcTexInfo.projection_type = event.target.value;
-    console.log("proj type", srcTexInfo.projection_type);
+    mediaContainer.projectionType = event.target.value;
+    console.log("proj type", mediaContainer.projectionType);
   });
 
   uiContainer.appendChild(projTypeLabel);
   uiContainer.appendChild(projTypeDropdown);
   uiContainer.appendChild(document.createElement('hr'));
-  params.forEach(function(param) {
+  paramManager.getParams().forEach(function(param) {
     for (var i  = 0; i < param['value'].length; i++) {
       var labelElement = document.createElement('span');
       labelElement.textContent = param['label'][i];

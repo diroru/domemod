@@ -5,7 +5,7 @@
   "main": "index.html",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build-js": "watchify ./js/domeviewer.js -o ./build/bundle.js -v",
+    "build-js": "watchify ./js/dmMain.js -o ./build/bundle.js -v",
     "build": "npm run build-js"
   },
   "repository": {

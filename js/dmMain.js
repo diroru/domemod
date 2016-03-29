@@ -1,4 +1,4 @@
-const glManager = require('./dmGLManager.js');
+var glManager = require('./dmGLManager.js');
 const mediaContainer = require('./dmMediaContainer.js');
 const UIManager = require('./dmUIManager.js');
 const inputManager = require('./dmInputManager.js');

@@ -1,6 +1,7 @@
-const cleanupOnExit = require('./utils/cleanupOnExit.js');
-const paramManager = require('./dmParamManager.js');
-const mediaContainer = require('./dmMediaContainer.js');
+var cleanupOnExit = require('./utils/cleanupOnExit.js');
+var paramManager = require('./dmParamManager.js');
+var mediaContainer = require('./dmMediaContainer.js');
+var glslify = require('glslify');
 
 var canvas = null, gl = null;
 
@@ -26,7 +27,7 @@ function init(settings) {
   } else {
     fitCanvas();
     gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
-    initShaders(params.vsPath, params.fsPath);
+    initShaders(settings.vsPath, settings.fsPath);
     initBuffers();
     //init texture(s)
     sourceTexture = gl.createTexture();
