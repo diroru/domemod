@@ -58,6 +58,51 @@ function handlePointerEnd(event) {
 
 }
 
+function handleKeys(event) {
+  if (event.defaultPrevented) {
+    return; // Do nothing if the event was already processed
+  }
+
+  switch (event.key) {
+    case "PageDown":
+      // Do something for "down arrow" key press.
+      console.log("page down");
+      break;
+    case "PageUp":
+      console.log("page up");
+      // Do something for "up arrow" key press.
+      break;
+    default:
+      return; // Quit when this doesn't handle the key event.
+  }
+
+  // Cancel the default action to avoid it being handled twice
+  event.preventDefault();
+}
+
+function handleWheel(event) {
+  event.preventDefault();
+  // if (event.defaultPrevented) {
+  //   return; // Do nothing if the event was already processed
+  // }
+  var dx = event.deltaX;
+  var dy = event.deltaY;
+  console.log(dx, dy);
+  if (Math.abs(dx) > Math.abs(dy)) {
+    dy = 0.0;
+  } else {
+    dx = 0.0;
+  }
+  var newValueX = paramManager.getParam('uCameraPosition', 0) + dx * panTiltFactor;
+  var newValueY = paramManager.getParam('uCameraPosition', 2) + dy * panTiltFactor;
+  triggerEvent('uCameraPosition-X-input', newValueX);
+  triggerEvent('uCameraPosition-Z-input', newValueY);
+  paramManager.setParam('uCameraPosition', newValueX, 0);
+  paramManager.setParam('uCameraPosition', newValueY, 2);
+
+  // Cancel the default action to avoid it being handled twice
+}
+
 //TODO
 function init(settings) {
   var pointerSensitiveElement = document.getElementById(settings.glCanvasId);
@@ -71,6 +116,10 @@ function init(settings) {
     // sole.log('pointer up');
     pointerSensitiveElement.removeEventListener('mousemove',handlePointerMoved,true);
   });
+  //source: https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key
+  window.addEventListener("keydown", handleKeys, true);
+  window.addEventListener("wheel", handleWheel, true);
+
   /*
   pointerSensitiveElement.addEventListener('keydown', function(event) {
     switch (event.code) {
