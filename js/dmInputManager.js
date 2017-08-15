@@ -21,9 +21,12 @@ function handlePointerMoved(event) {
     dx = 0.0;
   }
   if (event.altKey) {
-    var newValueY = paramManager.getParam('uHorizontalFOV', 0) + dy * zoomFactor;
-    triggerEvent('uHorizontalFOV-input', newValueY);
-    paramManager.getParam('uHorizontalFOV', newValueY, 0);
+    var newValueX = paramManager.getParam('uHorizontalFOV', 0) + dx * zoomFactor;
+    var newValueY = paramManager.getParam('uSphereLatitude', 0) + dy * zoomFactor;
+    triggerEvent('uHorizontalFOV-input', newValueX);
+    triggerEvent('uSphereLatitude-input', newValueY);
+    paramManager.setParam('uHorizontalFOV', newValueX, 0);
+    paramManager.setParam('uuSphereLatitude', newValueY, 0);
   } else if (event.shiftKey) {
     var newValueX = paramManager.getParam('uCameraPosition', 0) + dx * panTiltFactor;
     var newValueY = paramManager.getParam('uCameraPosition', 2) + dy * panTiltFactor;

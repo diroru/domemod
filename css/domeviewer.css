@@ -51,3 +51,16 @@ hr {
 	border-color: #666;
 	border-style: solid;
 }
+
+#dropTarget {
+	width: calc(100% - 20px);
+	height: 70px;
+	/*background-color: #f0f;*/
+	border: 1px dashed #fff;
+	padding: 10px;
+	line-height: 15px;
+}
+
+.drag {
+	background-color: #fc0;
+}

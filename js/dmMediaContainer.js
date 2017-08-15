@@ -1,4 +1,5 @@
 var YoutubeVideo = require('./utils/YoutubeVideo.js');
+var dragDrop = require('drag-drop');
 
 var mediaContainerElement, currentURL;
 
@@ -15,7 +16,29 @@ function init(settings) {
   //source: http://codepen.io/SpencerCooley/pen/JtiFL/
   //check if browser supports file api and filereader features
   mediaContainerElement = document.getElementById(settings.mediaContainerId);
+  dragDrop('#dropTarget', {
+    onDrop: function (files, pos) {
+        console.log('Here are the dropped files', files);
+        console.log('Dropped at coordinates', pos.x, pos.y);
+        var file = files[0];
+        if (file !== undefined) {
+          console.log("file size:", file.size);
+          console.log("file type:", file.type);
+          if(file.type.match(/video\/*/)){
+            setVideoSource(file);
+          } else if (file.type.match(/image\/*/)) {
+            setImageSource(file);
+          } else {
+            console.log("Couldn't interpret image/video file: ", this.files[0]);
+          }
+        } else {
+          console.log("probably cancelled.");
+        }
+    }
+  });
   if (window.File && window.FileReader && window.FileList && window.Blob) {
+
+
 
     //console.log(document);
     document.getElementById(settings.videoFileFieldId).addEventListener('change', function(event) {

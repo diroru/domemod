@@ -29,6 +29,7 @@
     "watchify": "^3.7.0"
   },
   "dependencies": {
+    "drag-drop": "^2.13.2",
     "glsl-random": "0.0.5",
     "glslify": "^5.0.2",
     "glslify-import": "^3.0.0"
