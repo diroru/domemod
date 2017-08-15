@@ -17,7 +17,7 @@ function init(settings) {
   canvas = document.getElementById(settings.glCanvasId);
   gl = null;
   try {
-    gl = canvas.getContext("experimental-webgl", {antialias: false, alpha: false, depth: false, stencil: false, preserveDrawingBuffer: false});
+    gl = canvas.getContext("webgl", {antialias: false, alpha: false, depth: false, stencil: false, preserveDrawingBuffer: false});
   }
   catch(e) {
     console.error(e);
@@ -81,6 +81,7 @@ function draw() {
     switch(param['type']) {
       case 'float':
         switch(param['value'].length) {
+
           case 1:
             gl.uniform1f(param['uloc'], param['value'][0]);
           break;
@@ -105,13 +106,25 @@ function draw() {
           break;
         }
         break;
+      case 'boolean':
+        switch(param['value'].length) {
+          case 1:
+            gl.uniform1i(param['uloc'], param['value'][0]);
+          break;
+          case 2:
+            gl.uniform2i(param['uloc'], param['value'][0], param['value'][1]);
+          break;
+          case 3:
+            gl.uniform3i(param['uloc'], param['value'][0], param['value'][1], param['value'][2]);
+          break;
+        }
+        break;
     }
   });
 
 
   gl.uniform2f(uSizeLoc, gl.canvas.width, gl.canvas.height);
 
-  gl.uniform1i(uShowGridLoc, showGrid);
   gl.uniform1i(uSrcTexProjTypeLoc, mediaContainer.projectionType);
 
   // Draw the quad.

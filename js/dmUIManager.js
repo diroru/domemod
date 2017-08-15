@@ -10,6 +10,7 @@ var mainPointerId = -1;
 var panTiltFactor = 0.1;
 var dollyFactor = 0.1;
 var zoomFactor = 0.1;
+let showGrid = false;
 
 function init(settings) {
   var uiContainer = document.getElementById(settings.uiId);
@@ -34,6 +35,10 @@ function init(settings) {
   uiContainer.appendChild(projTypeDropdown);
   uiContainer.appendChild(document.createElement('hr'));
   paramManager.getParams().forEach(function(param) {
+    //TODO
+    if (param.type === 'boolean') {
+      return;
+    }
     for (var i  = 0; i < param['value'].length; i++) {
       var labelElement = document.createElement('span');
       labelElement.textContent = param['label'][i];
@@ -85,7 +90,8 @@ function init(settings) {
   showGridCheckBox.type = "checkbox";
   showGridCheckBox.addEventListener('change', function(event) {
     showGrid = (showGrid + 1) % 2;
-    console.log("chkbox", event.target.value, this.value);
+    paramManager.setParam('uShowGrid', showGrid);
+    console.log("chkbox", event.target.checked);
   });
   uiContainer.appendChild(showGridLabel);
   uiContainer.appendChild(showGridCheckBox);

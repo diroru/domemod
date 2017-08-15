@@ -32,7 +32,7 @@ uniform float uSphereLatitude;
 uniform vec2 uCameraOrientation;
 uniform vec3 uCameraPosition;
 
-uniform bool uShowGrid;
+uniform int uShowGrid;
 uniform int uSrcTexProjType;
 // uniform float uNearPlane;
 
@@ -185,7 +185,7 @@ void main() {
 		if (fromOutside) {
 			gl_FragColor = mix(gl_FragColor, GREY, 0.6);
 		}
-		if (uShowGrid) {
+		if (uShowGrid == 1) {
 			vec3 gridColour = getGrid(longLatVisible, vec3(1.0, 1.0, 0.0));
 			gl_FragColor = gl_FragColor + vec4(gridColour, 1.0) * 0.2;
 		}

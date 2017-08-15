@@ -52,6 +52,15 @@ var params = [
     type: "float",
     min: [0],
     max: [180]
+  },
+  {
+    name: "uShowGrid",
+    label: ["show grid"],
+    suffix: [""],
+    value: [0],
+    type: "boolean",
+    min: [0],
+    max: [1]
   }
   /*
   params.push({
