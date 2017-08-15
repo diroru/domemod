@@ -7,6 +7,7 @@ var zoomOn = false;
 var activePointerCount = 0;
 var mainPointerId = -1;
 var panTiltFactor = 0.1;
+var domeOrientationFactor = 0.1;
 var dollyFactor = 0.1;
 var zoomFactor = 0.1;
 
@@ -31,14 +32,21 @@ function handlePointerMoved(event) {
     paramManager.setParam('uCameraPosition', newValueX, 0);
     paramManager.setParam('uCameraPosition', newValueY, 2);
     // console.log(dx, dy, newValueX, newValueY);
+  } else if (event.metaKey){
+    var newValueX = paramManager.getParam('uSphereOrientation', 0) - dx * domeOrientationFactor;
+    var newValueY = paramManager.getParam('uSphereOrientation', 1) + dy * domeOrientationFactor;
+    triggerEvent('uSphereOrientation-X-input', newValueX);
+    triggerEvent('uSphereOrientation-Y-input', newValueY);
+    paramManager.setParam('uSphereOrientation', newValueX, 0);
+    paramManager.setParam('uSphereOrientation', newValueY, 1);
+    // console.log(dx, dy, newValueX, newValueY);
   } else {
-    var newValueX = paramManager.getParam('uCameraOrientation', 0) - dx * panTiltFactor;
+    var newValueX = paramManager.getParam('uCameraOrientation', 0) + dx * panTiltFactor;
     var newValueY = paramManager.getParam('uCameraOrientation', 1) + dy * panTiltFactor;
     triggerEvent('uCameraOrientation-X-input', newValueX);
     triggerEvent('uCameraOrientation-Y-input', newValueY);
     paramManager.setParam('uCameraOrientation', newValueX, 0);
     paramManager.setParam('uCameraOrientation', newValueY, 1);
-    // console.log(dx, dy, newValueX, newValueY);
   }
 }
 
